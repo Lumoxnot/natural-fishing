@@ -255,6 +255,146 @@ const NavAuth = {
 };
 
 // ============================================================
+// MENU MOBILE
+// ============================================================
+const MenuMobile = {
+  aberto: false,
+
+  init() {
+    this.bindEventos();
+    this.renderizar();
+  },
+
+  renderizar() {
+    const body = document.getElementById('mobile-menu-body');
+    if (!body) return;
+
+    const user = Utils.getLoggedUser();
+
+    if (!user) {
+      body.innerHTML = `
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('cadastro.html')">
+          <span class="icone-menu">📝</span> Cadastrar
+        </button>
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/login.html')">
+          <span class="icone-menu">🔑</span> Entrar
+        </button>
+        <div class="mobile-menu-divider"></div>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
+          <span class="icone-menu">🎣</span> Produtos
+        </button>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
+          <span class="icone-menu">ℹ️</span> Sobre
+        </button>
+      `;
+    } else if (user.role === 'admin') {
+      body.innerHTML = `
+        <div class="mobile-menu-usuario">
+          <div class="nome">👤 ${user.nome || 'Admin'}</div>
+          <div class="email">${user.email}</div>
+        </div>
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/dashboard.html')">
+          <span class="icone-menu">📊</span> Painel Admin
+        </button>
+        <div class="mobile-menu-divider"></div>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
+          <span class="icone-menu">🎣</span> Produtos
+        </button>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
+          <span class="icone-menu">ℹ️</span> Sobre
+        </button>
+        <div class="mobile-menu-divider"></div>
+        <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
+          <span class="icone-menu">🚪</span> Sair
+        </button>
+      `;
+    } else {
+      body.innerHTML = `
+        <div class="mobile-menu-usuario">
+          <div class="nome">👤 ${user.nome || 'Usuário'}</div>
+          <div class="email">${user.email}</div>
+        </div>
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('meus-pedidos.html')">
+          <span class="icone-menu">📦</span> Meus Pedidos
+        </button>
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('favoritos.html')">
+          <span class="icone-menu">❤️</span> Favoritos
+        </button>
+        <div class="mobile-menu-divider"></div>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
+          <span class="icone-menu">🎣</span> Produtos
+        </button>
+        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
+          <span class="icone-menu">ℹ️</span> Sobre
+        </button>
+        <div class="mobile-menu-divider"></div>
+        <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
+          <span class="icone-menu">🚪</span> Sair
+        </button>
+      `;
+    }
+  },
+
+  abrir() {
+    this.aberto = true;
+    document.getElementById('mobile-menu')?.classList.add('aberto');
+    document.getElementById('mobile-menu-overlay')?.classList.add('ativo');
+    document.getElementById('btn-hamburger')?.classList.add('ativo');
+    document.body.style.overflow = 'hidden';
+  },
+
+  fechar() {
+    this.aberto = false;
+    document.getElementById('mobile-menu')?.classList.remove('aberto');
+    document.getElementById('mobile-menu-overlay')?.classList.remove('ativo');
+    document.getElementById('btn-hamburger')?.classList.remove('ativo');
+    document.body.style.overflow = '';
+  },
+
+  toggle() {
+    this.aberto ? this.fechar() : this.abrir();
+  },
+
+  ir(url) {
+    this.fechar();
+    setTimeout(() => window.location.href = url, 200);
+  },
+
+  irAncora(ancora) {
+    this.fechar();
+    setTimeout(() => {
+      const el = document.querySelector(ancora);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+  },
+
+  sair() {
+    this.fechar();
+    Utils.removeToken();
+    Toast.sucesso('Até logo! 🎣');
+    setTimeout(() => window.location.href = 'index.html', 800);
+  },
+
+  bindEventos() {
+    document.getElementById('btn-hamburger')
+      ?.addEventListener('click', () => this.toggle());
+
+    document.getElementById('btn-fechar-menu')
+      ?.addEventListener('click', () => this.fechar());
+
+    document.getElementById('mobile-menu-overlay')
+      ?.addEventListener('click', () => this.fechar());
+
+    // Carrinho mobile
+    document.getElementById('btn-abrir-carrinho-mobile')
+      ?.addEventListener('click', () => {
+        this.fechar();
+        Carrinho.abrir();
+      });
+  }
+};
+
+// ============================================================
 // NOTIFICAÇÕES
 // ============================================================
 const Notificacoes = {
@@ -1859,38 +1999,41 @@ const Router = {
     Loading.init();
     Toast.init();
 
-    const path = window.location.pathname;
+    const path  = window.location.pathname;
     const pagina = path.split('/').pop() || 'index.html';
 
-    // Redirecionamento inicial baseado no papel do usuário
     if (pagina === 'index.html' || pagina === '' || pagina === '/') {
       const user = Utils.getLoggedUser();
-      if (user) {
-        if (user.role === 'admin') {
-          window.location.href = 'admin/dashboard.html';
-          return;
-        }
-        // Usuário comum logado permanece na loja
+      if (user && user.role === 'admin') {
+        window.location.href = 'admin/dashboard.html';
+        return;
       }
-    }
-
-    // Inicializa página específica
-    if (pagina === 'index.html' || pagina === '' || pagina === '/') {
       Carrinho.init();
+      MenuMobile.init();  // << ADICIONADO
       PaginaLoja.init();
+
     } else if (pagina === 'produto.html') {
       Carrinho.init();
+      MenuMobile.init();  // << ADICIONADO
       PaginaDetalhe.init();
+
     } else if (pagina === 'login.html') {
       PaginaLogin.init();
+
     } else if (pagina === 'cadastro.html') {
       PaginaCadastro.init();
+
     } else if (pagina === 'dashboard.html') {
       PaginaDashboard.init();
+
     } else if (pagina === 'meus-pedidos.html') {
+      MenuMobile.init();  // << ADICIONADO
       PaginaMeusPedidos.init();
+
     } else if (pagina === 'favoritos.html') {
+      MenuMobile.init();  // << ADICIONADO
       PaginaFavoritos.init();
+
     } else {
       Loading.ocultar();
     }

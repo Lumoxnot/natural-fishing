@@ -17,26 +17,54 @@
   <div id="toast-container"></div>
 
   <header>
-    <nav class="navbar">
-      <a href="index.html" class="logo">
-        <span class="logo-icon">🎣</span>
-        Natural <span>Fishing</span>
-      </a>
-      <ul class="nav-links">
-        <li><a href="#produtos">Produtos</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-      </ul>
-      <div class="nav-actions">
-        <div id="nav-auth">
-          <!-- Preenchido via JS com base no estado de autenticação -->
-        </div>
-        <button class="btn-carrinho" id="btn-abrir-carrinho" aria-label="Abrir carrinho">
-          🛒 Carrinho
-          <span class="badge-carrinho" id="badge-carrinho">0</span>
-        </button>
-      </div>
-    </nav>
-  </header>
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🎣</span>
+      Natural <span>Fishing</span>
+    </a>
+
+    <!-- DESKTOP NAV -->
+    <ul class="nav-links">
+      <li><a href="#produtos">Produtos</a></li>
+      <li><a href="#sobre">Sobre</a></li>
+    </ul>
+
+    <!-- DESKTOP AUTH -->
+    <div class="nav-actions desktop-only">
+      <div id="nav-auth"></div>
+      <button class="btn-carrinho" id="btn-abrir-carrinho" aria-label="Abrir carrinho">
+        🛒 <span class="badge-carrinho" id="badge-carrinho">0</span>
+      </button>
+    </div>
+
+    <!-- MOBILE ACTIONS -->
+    <div class="mobile-actions">
+      <button class="btn-carrinho-mobile" id="btn-abrir-carrinho-mobile" aria-label="Carrinho">
+        🛒
+        <span class="badge-carrinho" id="badge-carrinho-mobile">0</span>
+      </button>
+      <button class="btn-hamburger" id="btn-hamburger" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MENU MOBILE OVERLAY -->
+  <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+
+  <!-- MENU MOBILE -->
+  <div class="mobile-menu" id="mobile-menu">
+    <div class="mobile-menu-header">
+      <span class="logo-mobile">🎣 Natural Fishing</span>
+      <button class="btn-fechar-menu" id="btn-fechar-menu" aria-label="Fechar menu">✕</button>
+    </div>
+    <div class="mobile-menu-body" id="mobile-menu-body">
+      <!-- Preenchido via JS com base no estado de login -->
+    </div>
+  </div>
+</header>
 
   <section class="hero">
     <div class="hero-content">
