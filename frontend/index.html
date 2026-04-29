@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Natural Fishing — Pesca em Caraguatatuba</title>
+  <meta name="description" content="Loja de pesca em Caraguatatuba. Varas, molinetes, iscas, linhas e muito mais."/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando produtos...</p>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🎣</span>
+        Natural <span>Fishing</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#produtos">Produtos</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div id="nav-auth">
+          <!-- Preenchido via JS com base no estado de autenticação -->
+        </div>
+        <button class="btn-carrinho" id="btn-abrir-carrinho" aria-label="Abrir carrinho">
+          🛒 Carrinho
+          <span class="badge-carrinho" id="badge-carrinho">0</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Sua loja de pesca em <span>Caraguatatuba</span></h1>
+      <p>Os melhores equipamentos para você explorar os rios, praias e lagoas da região.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">🌊 Pesca no Mar</span>
+        <span class="hero-badge">🏞️ Pesca em Rio</span>
+        <span class="hero-badge">🚚 Entrega Local</span>
+        <span class="hero-badge">✅ Qualidade Garantida</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-filtros">
+    <div class="filtros-inner">
+      <div class="campo-busca">
+        <span class="icone-busca">🔍</span>
+        <input
+          type="text"
+          id="input-busca"
+          placeholder="Buscar produtos..."
+          autocomplete="off"
+        />
+      </div>
+      <div class="grupo-filtro">
+        <label for="filtro-categoria">Categoria</label>
+        <select id="filtro-categoria">
+          <option value="todos">Todas</option>
+          <option value="varas">Varas</option>
+          <option value="molinetes">Molinetes</option>
+          <option value="iscas">Iscas</option>
+          <option value="linhas">Linhas</option>
+          <option value="anzois">Anzóis</option>
+          <option value="acessorios">Acessórios</option>
+        </select>
+      </div>
+      <div class="grupo-filtro">
+        <label for="filtro-preco-min">Preço mín. (R$)</label>
+        <input type="number" id="filtro-preco-min" placeholder="0" min="0"/>
+      </div>
+      <div class="grupo-filtro">
+        <label for="filtro-preco-max">Preço máx. (R$)</label>
+        <input type="number" id="filtro-preco-max" placeholder="9999" min="0"/>
+      </div>
+      <button class="btn-limpar" id="btn-limpar-filtros">✕ Limpar</button>
+    </div>
+  </section>
+
+  <section class="section-produtos" id="produtos">
+    <div class="section-header">
+      <h2>Nossos Produtos</h2>
+      <span class="contagem-produtos" id="contagem-produtos"></span>
+    </div>
+    <div class="grid-produtos" id="grid-produtos"></div>
+  </section>
+
+  <section class="section-info" id="sobre">
+    <div class="info-inner">
+      <div class="info-item">
+        <div class="icone">🎣</div>
+        <h3>Especialistas em Pesca</h3>
+        <p>Mais de 10 anos servindo os pescadores de Caraguatatuba e região.</p>
+      </div>
+      <div class="info-item">
+        <div class="icone">🚚</div>
+        <h3>Entrega Local</h3>
+        <p>Entregamos em toda Caraguatatuba, São Sebastião e Ubatuba.</p>
+      </div>
+      <div class="info-item">
+        <div class="icone">💳</div>
+        <h3>Parcele em até 10x</h3>
+        <p>Aceitamos cartão, Pix e boleto com as melhores condições.</p>
+      </div>
+      <div class="info-item">
+        <div class="icone">🏆</div>
+        <h3>Produtos de Qualidade</h3>
+        <p>Trabalhamos com as maiores marcas do mercado nacional e importado.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2024 <strong>Natural Fishing</strong> — Caraguatatuba, SP. Todos os direitos reservados.</p>
+    <p style="margin-top:6px;">🌊 Feito com amor para os pescadores do Litoral Norte</p>
+  </footer>
+
+  <div class="overlay-carrinho" id="overlay-carrinho"></div>
+  <aside class="sidebar-carrinho" id="sidebar-carrinho">
+    <div class="carrinho-header">
+      <h2>🛒 Meu Carrinho</h2>
+      <button class="btn-fechar-carrinho" id="btn-fechar-carrinho">✕</button>
+    </div>
+    <div class="carrinho-itens" id="carrinho-itens"></div>
+    <div class="carrinho-footer" id="carrinho-footer" style="display:none;">
+      <div class="linha-total">
+        <span>Total</span>
+        <span class="valor-total" id="valor-total">R$ 0,00</span>
+      </div>
+      <button class="btn-finalizar" id="btn-finalizar">Finalizar Pedido</button>
+    </div>
+  </aside>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

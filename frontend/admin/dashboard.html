@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Natural Fishing Admin</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando painel...</p>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <h2>🎣 Natural Fishing</h2>
+        <span>Painel Admin</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="ativo" id="nav-produtos">📦 Produtos</a>
+        <a href="#" id="nav-usuarios">👥 Usuários</a>
+        <a href="#" id="nav-pedidos">🛒 Pedidos</a>
+        <a href="#" id="nav-cupons">🎟️ Cupons</a>
+        <a href="../index.html" target="_blank">🌐 Ver Loja</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="btn-sair" id="btn-sair">🚪 Sair</button>
+      </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <h1 id="admin-page-title">Dashboard</h1>
+        <span class="admin-usuario" id="admin-email"></span>
+      </div>
+
+      <div class="admin-content">
+
+        <!-- STATS GERAIS -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icone">💰</div>
+            <div class="stat-info">
+              <h3 id="stat-vendas" class="admin-stat-vendas">R$ 0,00</h3>
+              <p>Total de Vendas</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">📦</div>
+            <div class="stat-info">
+              <h3 id="stat-total">0</h3>
+              <p>Produtos Ativos</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">🎯</div>
+            <div class="stat-info">
+              <h3 id="stat-categorias">0</h3>
+              <p>Categorias</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icone">👥</div>
+            <div class="stat-info">
+              <h3 id="stat-usuarios">0</h3>
+              <p>Usuários Cadastrados</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUTOS MAIS VENDIDOS -->
+        <div class="painel">
+          <div class="painel-header">
+            <h2>📈 Produtos Mais Vendidos</h2>
+          </div>
+          <div class="painel-body" style="padding:0;">
+            <div id="mais-vendidos-lista" style="padding:16px;">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO PRODUTOS -->
+        <section id="secao-produtos">
+          <!-- FORMULÁRIO DE PRODUTO -->
+          <div class="painel">
+            <div class="painel-header">
+              <h2 id="titulo-form">➕ Novo Produto</h2>
+              <button
+                class="btn-acao btn-editar"
+                id="btn-cancelar-edicao"
+                style="display:none;"
+              >Cancelar Edição</button>
+            </div>
+            <div class="painel-body">
+              <form id="form-produto" novalidate>
+                <input type="hidden" id="produto-id"/>
+                <div class="grid-form">
+                  <div class="form-grupo">
+                    <label for="produto-nome">Nome *</label>
+                    <input
+                      type="text"
+                      id="produto-nome"
+                      placeholder="Ex: Vara Shimano 2.40m"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-grupo">
+                    <label for="produto-categoria">Categoria *</label>
+                    <select id="produto-categoria" required>
+                      <option value="">Selecione...</option>
+                      <option value="varas">Varas</option>
+                      <option value="molinetes">Molinetes</option>
+                      <option value="iscas">Iscas</option>
+                      <option value="linhas">Linhas</option>
+                      <option value="anzois">Anzóis</option>
+                      <option value="acessorios">Acessórios</option>
+                    </select>
+                  </div>
+
+                  <div class="form-grupo">
+                    <label for="produto-preco">Preço (R$) *</label>
+                    <input
+                      type="number"
+                      id="produto-preco"
+                      placeholder="Ex: 199.90"
+                      step="0.01"
+                      min="0.01"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-grupo">
+                    <label for="produto-estoque">Estoque *</label>
+                    <input
+                      type="number"
+                      id="produto-estoque"
+                      placeholder="Ex: 10"
+                      min="0"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-grupo span-2">
+                    <label for="produto-imagem">URL da Imagem</label>
+                    <input
+                      type="url"
+                      id="produto-imagem"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div class="form-grupo span-2">
+                    <label for="produto-descricao">Descrição</label>
+                    <textarea
+                      id="produto-descricao"
+                      placeholder="Descreva o produto..."
+                      rows="3"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div style="margin-top:16px; display:flex; gap:12px;">
+                  <button type="submit" class="btn-primario" id="btn-salvar-produto"
+                    style="max-width:220px;">
+                    💾 Salvar Produto
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- LISTAGEM DE PRODUTOS -->
+          <div class="painel">
+            <div class="painel-header">
+              <h2>📋 Produtos Cadastrados</h2>
+            </div>
+            <div class="painel-body" style="padding:0; overflow-x:auto;">
+              <table class="tabela-produtos">
+                <thead>
+                  <tr>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-body-produtos">
+                  <!-- Preenchido via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO USUÁRIOS -->
+        <section id="secao-usuarios" style="display:none;">
+          <div class="painel">
+            <div class="painel-header">
+              <h2>👥 Gerenciar Usuários</h2>
+            </div>
+            <div class="painel-body" style="padding:0; overflow-x:auto;">
+              <table class="tabela-usuarios">
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>Telefone</th>
+                    <th>Papel</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-body-usuarios">
+                  <!-- Preenchido via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO PEDIDOS -->
+        <section id="secao-pedidos" style="display:none;">
+          <div class="painel">
+            <div class="painel-header">
+              <h2>🛒 Gerenciar Pedidos</h2>
+            </div>
+            <div class="painel-body" style="padding:0; overflow-x:auto;">
+              <table class="tabela-pedidos">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-body-pedidos">
+                  <!-- Preenchido via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO CUPONS -->
+        <section id="secao-cupons" style="display:none;">
+          <div class="painel">
+            <div class="painel-header">
+              <h2>🎟️ Criar Novo Cupom</h2>
+            </div>
+            <div class="painel-body">
+              <form id="form-cupom" novalidate>
+                <div class="grid-form">
+                  <div class="form-grupo">
+                    <label for="cupom-codigo">Código *</label>
+                    <input type="text" id="cupom-codigo" placeholder="EX: DESCONTO10" required/>
+                  </div>
+                  <div class="form-grupo">
+                    <label for="cupom-desconto-percent">Desconto %</label>
+                    <input type="number" id="cupom-desconto-percent" placeholder="Ex: 10 (para 10%)" min="0" max="100"/>
+                  </div>
+                  <div class="form-grupo">
+                    <label for="cupom-desconto-fixo">Desconto Fixo (R$)</label>
+                    <input type="number" id="cupom-desconto-fixo" placeholder="Ex: 20.00" min="0" step="0.01"/>
+                  </div>
+                  <div class="form-grupo">
+                    <label for="cupom-valor-minimo">Valor Mínimo (R$)</label>
+                    <input type="number" id="cupom-valor-minimo" placeholder="Ex: 100.00" min="0" step="0.01"/>
+                  </div>
+                  <div class="form-grupo">
+                    <label for="cupom-validade">Data de Validade</label>
+                    <input type="date" id="cupom-validade"/>
+                  </div>
+                  <div class="form-grupo">
+                    <label for="cupom-limite-uso">Limite de Usos</label>
+                    <input type="number" id="cupom-limite-uso" placeholder="Ex: 50" min="0"/>
+                  </div>
+                </div>
+                <button type="submit" class="btn-primario" id="btn-salvar-cupom" style="margin-top:16px;">
+                  💾 Criar Cupom
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="painel">
+            <div class="painel-header">
+              <h2>🎟️ Cupons Cadastrados</h2>
+            </div>
+            <div class="painel-body" style="padding:0; overflow-x:auto;">
+              <table class="tabela-cupons">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Desconto</th>
+                    <th>Valor Mínimo</th>
+                    <th>Validade</th>
+                    <th>Usos</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-body-cupons">
+                  <!-- Preenchido via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+  <div class="modal-overlay" id="modal-excluir">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚠️ Confirmar Exclusão</h2>
+        <button class="btn-fechar-modal" id="btn-fechar-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:#5d6d7e; margin-bottom:24px;">
+          Tem certeza que deseja excluir o produto
+          <strong id="modal-produto-nome"></strong>?
+          Esta ação não pode ser desfeita.
+        </p>
+        <div style="display:flex; gap:12px;">
+          <button class="btn-acao btn-excluir" id="btn-confirmar-excluir"
+            style="padding:10px 24px; font-size:0.9rem;">
+            Sim, Excluir
+          </button>
+          <button class="btn-acao btn-editar" id="btn-cancelar-excluir"
+            style="padding:10px 24px; font-size:0.9rem;">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

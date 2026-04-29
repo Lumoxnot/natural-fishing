@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Produto — Natural Fishing</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando produto...</p>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🎣</span>
+        Natural <span>Fishing</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#produtos">Produtos</a></li>
+        <li><a href="index.html#sobre">Sobre</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn-carrinho" id="btn-abrir-carrinho" aria-label="Abrir carrinho">
+          🛒 Carrinho
+          <span class="badge-carrinho" id="badge-carrinho">0</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="detalhe-container" id="detalhe-container">
+      <!-- Preenchido via JS -->
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2024 <strong>Natural Fishing</strong> — Caraguatatuba, SP.</p>
+  </footer>
+
+  <div class="overlay-carrinho" id="overlay-carrinho"></div>
+  <aside class="sidebar-carrinho" id="sidebar-carrinho">
+    <div class="carrinho-header">
+      <h2>🛒 Meu Carrinho</h2>
+      <button class="btn-fechar-carrinho" id="btn-fechar-carrinho">✕</button>
+    </div>
+    <div class="carrinho-itens" id="carrinho-itens"></div>
+    <div class="carrinho-footer" id="carrinho-footer" style="display:none;">
+      <div class="linha-total">
+        <span>Total</span>
+        <span class="valor-total" id="valor-total">R$ 0,00</span>
+      </div>
+      <button class="btn-finalizar" id="btn-finalizar">Finalizar Pedido</button>
+    </div>
+  </aside>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
