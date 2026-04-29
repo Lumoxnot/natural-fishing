@@ -4,7 +4,7 @@
 // CONFIG
 // ============================================================
 const CONFIG = {
-  API_URL: window.API_BASE_URL || 'http://localhost:3000',
+  API_URL: window.API_BASE_URL || 'https://natural-fishing.onrender.com',
   TOKEN_KEY: 'nf_user_token',
   USER_KEY: 'nf_logged_user',
   CART_KEY: 'nf_cart_v2'
