@@ -1,0 +1,12 @@
+{
+"rewrites": [
+    { "source": "/login",      "destination": "/admin/login.html" },
+    { "source": "/dashboard",  "destination": "/admin/dashboard.html" },
+    { "source": "/cadastro",   "destination": "/cadastro.html" },
+    { "source": "/pedidos",    "destination": "/meus-pedidos.html" },
+    { "source": "/favoritos",  "destination": "/favoritos.html" },
+    { "source": "/loja",       "destination": "/index.html" }
+],
+"cleanUrls": true,
+"trailingSlash": false
+}
