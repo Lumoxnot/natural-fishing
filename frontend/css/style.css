@@ -2168,3 +2168,292 @@ footer {
   .card-produto:hover { transform: none; }
   .card-produto:hover .card-produto-img { transform: none; }
 }
+/* ============================================================
+   CORREÇÕES MOBILE — FAVORITOS E MEUS PEDIDOS
+   ============================================================ */
+
+/* Garante que nada ultrapasse a tela */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* ===== TÍTULO DE PÁGINA ===== */
+.pagina-titulo {
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  color: var(--azul-escuro);
+  font-weight: 800;
+  margin-bottom: 20px;
+  word-break: break-word;
+}
+
+/* ===== ÁREA DO USUÁRIO ===== */
+.area-usuario {
+  min-height: 100dvh;
+  background: var(--cinza-claro);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.usuario-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 16px;
+  box-sizing: border-box;
+}
+
+/* ===== FAVORITOS PAGE ===== */
+.favoritos-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 16px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* ===== PEDIDO CARD ===== */
+.pedido-card {
+  width: 100%;
+  background: var(--branco);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--azul-escuro);
+  color: var(--branco);
+  flex-wrap: wrap;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.pedido-body {
+  padding: 14px 16px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.pedido-itens-lista {
+  list-style: none;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.pedido-itens-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--cinza-claro);
+  font-size: 0.83rem;
+  color: var(--cinza-escuro);
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.pedido-itens-lista li span:last-child {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ===== GRID PRODUTOS ===== */
+.grid-produtos {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+/* ===== CARD PRODUTO ===== */
+.card-produto {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ===== NAVBAR MOBILE — garantias ===== */
+.navbar {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== MOBILE MENU — garantias ===== */
+.mobile-menu {
+  box-sizing: border-box;
+}
+
+.mobile-menu-body {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   MEDIA QUERIES CORRIGIDAS
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* GRID PRODUTOS */
+  .grid-produtos {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* FAVORITOS */
+  .favoritos-page {
+    padding: 20px 12px;
+  }
+
+  /* PEDIDOS */
+  .usuario-container {
+    padding: 20px 12px;
+  }
+
+  .pedido-header {
+    gap: 6px;
+  }
+
+  .linha-progresso {
+    padding: 10px 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* TABELAS ADMIN */
+  .tabela-produtos,
+  .tabela-usuarios,
+  .tabela-pedidos,
+  .tabela-cupons {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  /* STATS ADMIN */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* GRID 1 COLUNA em telas muito pequenas para favoritos */
+  .favoritos-page .grid-produtos {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* PEDIDO CARD */
+  .pedido-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pedido-itens-lista li {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pedido-itens-lista li span:last-child {
+    color: var(--verde);
+  }
+
+  /* STATS ADMIN */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    gap: 8px;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 375px) {
+
+  /* FAVORITOS */
+  .favoritos-page {
+    padding: 16px 10px;
+  }
+
+  .favoritos-page .grid-produtos {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* PEDIDOS */
+  .usuario-container {
+    padding: 16px 10px;
+  }
+
+  .pagina-titulo {
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+  }
+
+  /* BADGE STATUS */
+  .badge-status {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+
+  /* STATS ADMIN */
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 320px) {
+
+  .favoritos-page {
+    padding: 12px 8px;
+  }
+
+  .usuario-container {
+    padding: 12px 8px;
+  }
+
+  .favoritos-page .grid-produtos {
+    grid-template-columns: 1fr;
+  }
+
+  .card-footer {
+    flex-direction: column;
+  }
+
+  .btn-detalhes,
+  .btn-comprar {
+    width: 100%;
+  }
+}
+/* ===== ITEM ATIVO NO MENU MOBILE ===== */
+.mobile-menu-ativo {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: var(--branco) !important;
+  font-weight: 700 !important;
+  border-left: 3px solid var(--agua) !important;
+}

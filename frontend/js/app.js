@@ -269,22 +269,23 @@ const MenuMobile = {
     const body = document.getElementById('mobile-menu-body');
     if (!body) return;
 
-    const user = Utils.getLoggedUser();
+    const user        = Utils.getLoggedUser();
+    const paginaAtual = window.location.pathname.split('/').pop() || 'index.html';
+
+    const itemLoja = `
+      <button class="mobile-menu-item" onclick="MenuMobile.ir('index.html')">
+        <span class="icone-menu">🎣</span> Loja
+      </button>`;
 
     if (!user) {
       body.innerHTML = `
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('cadastro.html')">
-          <span class="icone-menu">📝</span> Cadastrar
-        </button>
+        ${itemLoja}
+        <div class="mobile-menu-divider"></div>
         <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/login.html')">
           <span class="icone-menu">🔑</span> Entrar
         </button>
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
-          <span class="icone-menu">🎣</span> Produtos
-        </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
-          <span class="icone-menu">ℹ️</span> Sobre
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('cadastro.html')">
+          <span class="icone-menu">📝</span> Cadastrar
         </button>
       `;
     } else if (user.role === 'admin') {
@@ -296,13 +297,7 @@ const MenuMobile = {
         <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/dashboard.html')">
           <span class="icone-menu">📊</span> Painel Admin
         </button>
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
-          <span class="icone-menu">🎣</span> Produtos
-        </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
-          <span class="icone-menu">ℹ️</span> Sobre
-        </button>
+        ${itemLoja}
         <div class="mobile-menu-divider"></div>
         <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
           <span class="icone-menu">🚪</span> Sair
@@ -314,18 +309,14 @@ const MenuMobile = {
           <div class="nome">👤 ${user.nome || 'Usuário'}</div>
           <div class="email">${user.email}</div>
         </div>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('meus-pedidos.html')">
+        ${itemLoja}
+        <button class="mobile-menu-item ${paginaAtual === 'meus-pedidos.html' ? 'mobile-menu-ativo' : ''}"
+          onclick="MenuMobile.ir('meus-pedidos.html')">
           <span class="icone-menu">📦</span> Meus Pedidos
         </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('favoritos.html')">
+        <button class="mobile-menu-item ${paginaAtual === 'favoritos.html' ? 'mobile-menu-ativo' : ''}"
+          onclick="MenuMobile.ir('favoritos.html')">
           <span class="icone-menu">❤️</span> Favoritos
-        </button>
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#produtos')">
-          <span class="icone-menu">🎣</span> Produtos
-        </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.irAncora('#sobre')">
-          <span class="icone-menu">ℹ️</span> Sobre
         </button>
         <div class="mobile-menu-divider"></div>
         <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
@@ -385,7 +376,6 @@ const MenuMobile = {
     document.getElementById('mobile-menu-overlay')
       ?.addEventListener('click', () => this.fechar());
 
-    // Carrinho mobile
     document.getElementById('btn-abrir-carrinho-mobile')
       ?.addEventListener('click', () => {
         this.fechar();
@@ -393,7 +383,6 @@ const MenuMobile = {
       });
   }
 };
-
 // ============================================================
 // NOTIFICAÇÕES
 // ============================================================
