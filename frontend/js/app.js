@@ -943,7 +943,7 @@ const PaginaDetalhe = {
 
   async init() {
     const id = Utils.getParam('id');
-    if (!id) { window.location.href = '/'; return; }
+    if (!id) { window.location.href = '/'; return; } // Alterado para URL limpa
     NavAuth.render();
     Loading.mostrar('Carregando produto...');
     try {
@@ -951,6 +951,8 @@ const PaginaDetalhe = {
       this.renderizar();
     } catch (err) {
       Toast.erro(err.message);
+      // Redireciona para a loja se o produto não for encontrado
+      setTimeout(() => window.location.href = '/', 1500);
     } finally {
       Loading.ocultar();
     }
@@ -963,8 +965,9 @@ const PaginaDetalhe = {
 
     document.title = `${p.nome} — Natural Fishing`;
     const esgotado = p.estoque === 0;
+    const user = Utils.getLoggedUser(); // Para verificar se o usuário está logado para favoritar
 
-         container.innerHTML = `
+    container.innerHTML = `
       <a href="/" class="btn-voltar">← Voltar para produtos</a>
       <div class="detalhe-card">
         <div class="detalhe-img-wrapper">
@@ -979,27 +982,66 @@ const PaginaDetalhe = {
           ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
           <div class="detalhe-preco">${Utils.formatarMoeda(p.preco)}</div>
           <p class="detalhe-descricao">
-            ${p.descricao || 'Produto de alta qualidade para pesca.'}
+            ${p.descricao || 'Produto de alta qualidade para pesca, ideal para suas aventuras.'}
           </p>
           ${esgotado
             ? `<div class="badge-esgotado" style="position:static;display:inline-block;margin-bottom:12px;">
                 Produto Esgotado
-               </div>`
+              </div>`
             : `<p style="font-size:0.8rem;color:#888;margin-bottom:12px;">
                 📦 ${p.estoque} unidade${p.estoque !== 1 ? 's' : ''} em estoque
-               </p>`
+              </p>`
           }
           <div class="detalhe-acoes">
             <button class="btn-comprar"
-              style="flex:1;padding:14px;font-size:1rem;"
               id="btn-adicionar-detalhe"
               ${esgotado ? 'disabled' : ''}>
               ${esgotado ? 'Produto Esgotado' : '🛒 Adicionar ao Carrinho'}
             </button>
+            ${user ? `
+              <button class="btn-adicionar-favoritos" id="btn-favoritar-detalhe">
+                ❤️ Adicionar aos Favoritos
+              </button>` : ''}
           </div>
-          <p style="font-size:0.78rem;color:#888;margin-top:8px;">
-            📦 Enviamos para toda a região de Caraguatatuba
-          </p>
+        </div>
+      </div>
+
+      <div class="secao-info-extra">
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">⚙️</span> Especificações Técnicas</h3>
+          <ul>
+            <li><strong>Material:</strong> ${p.especificacoes?.material || 'Não informado'}</li>
+            <li><strong>Peso:</strong> ${p.especificacoes?.peso || 'Não informado'}</li>
+            <li><strong>Dimensões:</strong> ${p.especificacoes?.dimensoes || 'Não informado'}</li>
+            <li><strong>Cor:</strong> ${p.especificacoes?.cor || 'Não informado'}</li>
+            <li><strong>Marca:</strong> ${p.especificacoes?.marca || 'Não informado'}</li>
+          </ul>
+        </div>
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">🚚</span> Frete e Entrega</h3>
+          <ul>
+            <li><strong>Prazo:</strong> 3-7 dias úteis (pode variar por região)</li>
+            <li><strong>Custo:</strong> Frete grátis para compras acima de R$ 200,00</li>
+            <li><strong>Regiões:</strong> Entregamos em todo o Brasil</li>
+            <li><strong>Rastreamento:</strong> Código enviado por e-mail</li>
+          </ul>
+          <div class="selos-confianca">
+            <img src="https://via.placeholder.com/80x32?text=Frete" alt="Selo Frete Grátis"/>
+            <img src="https://via.placeholder.com/80x32?text=Rápido" alt="Selo Entrega Rápida"/>
+          </div>
+        </div>
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">🔒</span> Compra Segura</h3>
+          <ul>
+            <li><strong>Pagamento:</strong> Cartão de crédito, Pix, Boleto</li>
+            <li><strong>Privacidade:</strong> Seus dados 100% protegidos</li>
+            <li><strong>Devolução:</strong> 7 dias para troca ou devolução</li>
+            <li><strong>Garantia:</strong> Contra defeitos de fabricação</li>
+          </ul>
+          <div class="selos-confianca">
+            <img src="https://via.placeholder.com/80x32?text=SSL" alt="Selo SSL Seguro"/>
+            <img src="https://via.placeholder.com/80x32?text=ReclameAqui" alt="Selo Reclame Aqui"/>
+          </div>
         </div>
       </div>
 
@@ -1026,7 +1068,7 @@ const PaginaDetalhe = {
               placeholder="Conte sua experiência com este produto (opcional)..."
               rows="3"
               style="width:100%;padding:8px 12px;border:1px solid var(--cinza-medio);
-                     border-radius:var(--radius-sm);font-size:0.85rem;resize:vertical;">
+                    border-radius:var(--radius-sm);font-size:0.85rem;resize:vertical;">
             </textarea>
             <button class="btn-primario" id="btn-enviar-avaliacao"
               style="max-width:180px;margin-top:10px;padding:10px;">
@@ -1049,12 +1091,35 @@ const PaginaDetalhe = {
         ?.addEventListener('click', () => Carrinho.adicionar(p));
     }
 
+    // Botão favoritar
+    if (user) {
+      document.getElementById('btn-favoritar-detalhe')
+        ?.addEventListener('click', (e) => PaginaDetalhe.toggleFavorito(e, p.id));
+    }
+
     // Botão enviar avaliação
     document.getElementById('btn-enviar-avaliacao')
       ?.addEventListener('click', () => this.enviarAvaliacao());
 
     // Carrega avaliações
     this.carregarAvaliacoes();
+  },
+
+  async toggleFavorito(e, produtoId) {
+    e.stopPropagation();
+    try {
+      const resp = await API.toggleFavorito(produtoId);
+      const btn = document.getElementById('btn-favoritar-detalhe');
+      if (resp.favoritado) {
+        Toast.sucesso('Adicionado aos favoritos! ❤️');
+        if (btn) btn.innerHTML = '❤️ Remover dos Favoritos';
+      } else {
+        Toast.info('Removido dos favoritos.');
+        if (btn) btn.innerHTML = '🤍 Adicionar aos Favoritos';
+      }
+    } catch (err) {
+      Toast.erro(err.message);
+    }
   },
 
   async carregarAvaliacoes() {
@@ -1109,6 +1174,9 @@ const PaginaDetalhe = {
         comentario: comentario || null
       });
       Toast.sucesso('Avaliação enviada! Obrigado. ⭐');
+      // Limpa o formulário de avaliação
+      document.getElementById('comentario-avaliacao').value = '';
+      document.querySelectorAll('input[name="nota"]').forEach(radio => radio.checked = false);
       await this.carregarAvaliacoes();
     } catch (err) {
       Toast.erro(err.message);

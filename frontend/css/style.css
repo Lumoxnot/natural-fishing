@@ -2457,3 +2457,298 @@ html, body {
   font-weight: 700 !important;
   border-left: 3px solid var(--agua) !important;
 }
+
+/* ============================================================
+   PÁGINA: DETALHE DO PRODUTO — REDESIGN
+   ============================================================ */
+
+.container-detalhe {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px; /* Espaçamento ajustado */
+}
+
+.detalhe-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Layout de duas colunas */
+  gap: 40px; /* Espaçamento entre colunas */
+  background: var(--branco);
+  border-radius: var(--radius);
+  padding: 32px; /* Padding interno ajustado */
+  box-shadow: var(--sombra);
+  align-items: flex-start; /* Alinha o conteúdo ao topo */
+}
+
+.detalhe-img-wrapper {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--sombra); /* Sombra para destacar a imagem */
+  aspect-ratio: 1 / 1; /* Imagem quadrada para melhor visual */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cinza-claro); /* Fundo para imagens transparentes */
+}
+
+.detalhe-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Garante que a imagem caiba sem cortar */
+  max-height: 500px; /* Limite de altura para imagens grandes */
+}
+
+.detalhe-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Espaçamento entre elementos de informação */
+}
+
+.detalhe-categoria {
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  background: var(--azul-claro);
+  color: var(--branco);
+  border-radius: 20px;
+  display: inline-block;
+  align-self: flex-start; /* Alinha o badge à esquerda */
+}
+
+.detalhe-nome {
+  font-size: clamp(1.8rem, 4vw, 2.5rem); /* Título maior e responsivo */
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--azul-escuro);
+  margin-bottom: 8px;
+}
+
+.detalhe-preco {
+  font-size: clamp(2.2rem, 5vw, 3.2rem); /* Preço muito maior */
+  font-weight: 900; /* Mais negrito */
+  color: var(--verde); /* Cor de destaque */
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.detalhe-descricao {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--cinza-escuro);
+  margin-bottom: 16px;
+}
+
+.detalhe-acoes {
+  display: flex;
+  flex-direction: column; /* Botões empilhados */
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-comprar {
+  width: 100%;
+  padding: 16px 24px; /* Botão maior */
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: var(--verde); /* Cor de destaque para compra */
+  color: var(--branco);
+  border: none;
+  cursor: pointer;
+  transition: var(--transicao);
+}
+
+.btn-comprar:hover {
+  background: #1a7a42; /* Tom mais escuro no hover */
+}
+
+.btn-comprar:disabled {
+  background: var(--cinza-medio);
+  cursor: not-allowed;
+}
+
+.btn-adicionar-favoritos {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--cinza-claro);
+  color: var(--azul-escuro);
+  border: 1px solid var(--cinza-medio);
+  cursor: pointer;
+  transition: var(--transicao);
+}
+
+.btn-adicionar-favoritos:hover {
+  background: var(--cinza-medio);
+}
+
+/* ===== NOVAS SEÇÕES DE INFORMAÇÃO ===== */
+.secao-info-extra {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cinza-claro);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.info-bloco {
+  background: var(--branco);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: 24px;
+}
+
+.info-bloco h3 {
+  font-size: 1.1rem;
+  color: var(--azul-escuro);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-bloco ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.info-bloco li {
+  font-size: 0.95rem;
+  color: var(--cinza-escuro);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.info-bloco li:last-child {
+  margin-bottom: 0;
+}
+
+.info-bloco li strong {
+  color: var(--azul-escuro);
+  min-width: 100px; /* Alinha os valores */
+}
+
+.info-bloco .selos-confianca {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.info-bloco .selos-confianca img {
+  height: 32px; /* Tamanho dos selos */
+  width: auto;
+  object-fit: contain;
+}
+
+/* ===== AVALIAÇÕES — Ajustes para o novo layout ===== */
+.secao-avaliacoes {
+  margin-top: 40px; /* Mais espaçamento */
+  padding-top: 32px;
+  border-top: 1px solid var(--cinza-claro);
+}
+
+.secao-avaliacoes h3 {
+  font-size: 1.4rem; /* Título maior */
+  margin-bottom: 24px;
+}
+
+.form-avaliacao {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.seletor-estrelas {
+  margin-bottom: 16px;
+}
+
+.seletor-estrelas label {
+  font-size: 2.2rem; /* Estrelas maiores */
+}
+
+.avaliacao-item {
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+
+.avaliacao-autor {
+  font-size: 0.9rem;
+}
+
+.avaliacao-data {
+  font-size: 0.78rem;
+}
+
+.avaliacao-comentario {
+  font-size: 0.9rem;
+}
+
+/* ===== MEDIA QUERIES — RESPONSIVIDADE ===== */
+@media (max-width: 992px) {
+  .detalhe-card {
+    grid-template-columns: 1fr; /* Uma coluna em telas menores */
+    gap: 32px;
+    padding: 24px;
+  }
+
+  .detalhe-img-wrapper {
+    aspect-ratio: 16 / 9; /* Proporção mais larga para mobile */
+    max-height: 300px;
+  }
+
+  .detalhe-info {
+    gap: 12px;
+  }
+
+  .detalhe-nome {
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+  }
+
+  .detalhe-preco {
+    font-size: clamp(2rem, 6vw, 2.8rem);
+  }
+
+  .btn-comprar, .btn-adicionar-favoritos {
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
+
+  .secao-info-extra {
+    grid-template-columns: 1fr; /* Uma coluna para informações extras */
+    gap: 20px;
+  }
+
+  .info-bloco {
+    padding: 20px;
+  }
+
+  .secao-avaliacoes h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container-detalhe {
+    padding: 24px 16px;
+  }
+
+  .detalhe-card {
+    padding: 20px;
+  }
+
+  .detalhe-nome {
+    font-size: 1.8rem;
+  }
+
+  .detalhe-preco {
+    font-size: 2.4rem;
+  }
+
+  .seletor-estrelas label {
+    font-size: 1.8rem;
+  }
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Produto — Natural Fishing</title>
+  <title>Detalhes do Produto — Natural Fishing</title>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
@@ -21,44 +21,75 @@
         <span class="logo-icon">🎣</span>
         Natural <span>Fishing</span>
       </a>
+
+      <!-- DESKTOP NAV -->
       <ul class="nav-links">
-        <li><a href="/#produtos">Produtos</a></li>
-        <li><a href="/#sobre">Sobre</a></li>
+        <li><a href="/">Loja</a></li>
+        <li><a href="/pedidos">Meus Pedidos</a></li>
+        <li><a href="/favoritos">Favoritos</a></li>
       </ul>
-      <div class="nav-actions">
+
+      <!-- DESKTOP AUTH -->
+      <div class="nav-actions desktop-only">
+        <div id="nav-auth"></div>
         <button class="btn-carrinho" id="btn-abrir-carrinho" aria-label="Abrir carrinho">
-          🛒 Carrinho
-          <span class="badge-carrinho" id="badge-carrinho">0</span>
+          🛒 <span class="badge-carrinho" id="badge-carrinho">0</span>
+        </button>
+      </div>
+
+      <!-- MOBILE ACTIONS -->
+      <div class="mobile-actions">
+        <button class="btn-carrinho-mobile" id="btn-abrir-carrinho-mobile" aria-label="Carrinho">
+          🛒
+          <span class="badge-carrinho" id="badge-carrinho-mobile">0</span>
+        </button>
+        <button class="btn-hamburger" id="btn-hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
       </div>
     </nav>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+
+    <!-- MOBILE MENU -->
+    <div class="mobile-menu" id="mobile-menu">
+      <div class="mobile-menu-header">
+        <span class="logo-mobile">🎣 Natural Fishing</span>
+        <button class="btn-fechar-menu" id="btn-fechar-menu" aria-label="Fechar menu">✕</button>
+      </div>
+      <div class="mobile-menu-body" id="mobile-menu-body">
+        <!-- Preenchido via JS com base no estado de login -->
+      </div>
+    </div>
   </header>
 
-  <main>
-    <div class="detalhe-container" id="detalhe-container">
-      <!-- Preenchido via JS -->
+  <main class="container-detalhe">
+    <div id="detalhe-container">
+      <!-- Detalhes do produto e avaliações serão carregados aqui via JS -->
     </div>
   </main>
 
   <footer>
-    <p>© 2024 <strong>Natural Fishing</strong> — Caraguatatuba, SP.</p>
+    &copy; 2024 Natural Fishing. Todos os direitos reservados.
   </footer>
 
+  <!-- Sidebar Carrinho -->
   <div class="overlay-carrinho" id="overlay-carrinho"></div>
-  <aside class="sidebar-carrinho" id="sidebar-carrinho">
+  <div class="sidebar-carrinho" id="sidebar-carrinho">
     <div class="carrinho-header">
-      <h2>🛒 Meu Carrinho</h2>
-      <button class="btn-fechar-carrinho" id="btn-fechar-carrinho">✕</button>
+      <h2>🛒 Seu Carrinho</h2>
+      <button class="btn-fechar-carrinho" id="btn-fechar-carrinho" aria-label="Fechar carrinho">✕</button>
     </div>
-    <div class="carrinho-itens" id="carrinho-itens"></div>
-    <div class="carrinho-footer" id="carrinho-footer" style="display:none;">
-      <div class="linha-total">
-        <span>Total</span>
-        <span class="valor-total" id="valor-total">R$ 0,00</span>
-      </div>
-      <button class="btn-finalizar" id="btn-finalizar">Finalizar Pedido</button>
+    <div class="carrinho-itens" id="carrinho-itens">
+      <!-- Itens do carrinho serão carregados aqui via JS -->
     </div>
-  </aside>
+    <div class="carrinho-footer" id="carrinho-footer">
+      <!-- Resumo e botão de finalizar serão carregados aqui via JS -->
+    </div>
+  </div>
 
   <script src="js/app.js"></script>
 </body>
