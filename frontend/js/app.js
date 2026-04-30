@@ -210,7 +210,7 @@ const NavAuth = {
       container.innerHTML = `
         <div style="display:flex;gap:8px;align-items:center;">
           <button class="btn-nav btn-nav-login"
-            onclick="window.location.href='admin/login.html'">Entrar</button>
+            onclick="window.location.href='/login'">Entrar</button>
           <button class="btn-nav btn-nav-cadastro"
             onclick="window.location.href='cadastro.html'">Cadastrar</button>
         </div>`;
@@ -225,7 +225,7 @@ const NavAuth = {
           </div>
           <span title="${user.email}">👤 ${user.nome || user.email}</span>
           <button class="btn-nav btn-nav-admin"
-            onclick="window.location.href='admin/dashboard.html'">Painel</button>
+            onclick="window.location.href='/dashboard'">Painel</button>
           <button class="btn-nav btn-nav-sair" onclick="NavAuth.sair()">Sair</button>
         </div>`;
       Notificacoes.init();
@@ -250,7 +250,7 @@ const NavAuth = {
   sair() {
     Utils.removeToken();
     Toast.sucesso('Até logo! 🎣');
-    setTimeout(() => window.location.href = 'index.html', 800);
+    setTimeout(() => window.location.href = '/', 800);
   }
 };
 
@@ -270,10 +270,10 @@ const MenuMobile = {
     if (!body) return;
 
     const user        = Utils.getLoggedUser();
-    const paginaAtual = window.location.pathname.split('/').pop() || 'index.html';
+    const paginaAtual = window.location.pathname.split('/').pop() || '/';
 
     const itemLoja = `
-      <button class="mobile-menu-item" onclick="MenuMobile.ir('index.html')">
+      <button class="mobile-menu-item" onclick="MenuMobile.ir('/')">
         <span class="icone-menu">🎣</span> Loja
       </button>`;
 
@@ -281,7 +281,7 @@ const MenuMobile = {
       body.innerHTML = `
         ${itemLoja}
         <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/login.html')">
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('/login')">
           <span class="icone-menu">🔑</span> Entrar
         </button>
         <button class="mobile-menu-item" onclick="MenuMobile.ir('cadastro.html')">
@@ -294,7 +294,7 @@ const MenuMobile = {
           <div class="nome">👤 ${user.nome || 'Admin'}</div>
           <div class="email">${user.email}</div>
         </div>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('admin/dashboard.html')">
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('/dashboard')">
           <span class="icone-menu">📊</span> Painel Admin
         </button>
         ${itemLoja}
@@ -363,7 +363,7 @@ const MenuMobile = {
     this.fechar();
     Utils.removeToken();
     Toast.sucesso('Até logo! 🎣');
-    setTimeout(() => window.location.href = 'index.html', 800);
+    setTimeout(() => window.location.href = '/', 800);
   },
 
   bindEventos() {
@@ -509,7 +509,7 @@ const Carrinho = {
     const user = Utils.getLoggedUser();
     if (!user) {
       Toast.erro('Faça login para adicionar ao carrinho!');
-      setTimeout(() => window.location.href = 'admin/login.html', 1200);
+      setTimeout(() => window.location.href = '/login', 1200);
       return;
     }
 
@@ -694,7 +694,7 @@ const Carrinho = {
     const user = Utils.getLoggedUser();
     if (!user) {
       Toast.erro('Faça login para finalizar a compra!');
-      setTimeout(() => window.location.href = 'admin/login.html', 1200);
+      setTimeout(() => window.location.href = '/login', 1200);
       return;
     }
 
@@ -943,7 +943,7 @@ const PaginaDetalhe = {
 
   async init() {
     const id = Utils.getParam('id');
-    if (!id) { window.location.href = 'index.html'; return; }
+    if (!id) { window.location.href = '/'; return; }
     NavAuth.render();
     Loading.mostrar('Carregando produto...');
     try {
@@ -965,7 +965,7 @@ const PaginaDetalhe = {
     const esgotado = p.estoque === 0;
 
          container.innerHTML = `
-      <a href="index.html" class="btn-voltar">← Voltar para produtos</a>
+      <a href="/" class="btn-voltar">← Voltar para produtos</a>
       <div class="detalhe-card">
         <div class="detalhe-img-wrapper">
           <img class="detalhe-img"
@@ -1035,7 +1035,7 @@ const PaginaDetalhe = {
           </div>
         ` : `
           <p style="font-size:0.85rem;color:#888;margin-bottom:16px;">
-            <a href="admin/login.html" style="color:var(--azul-claro);">Faça login</a>
+            <a href="/login" style="color:var(--azul-claro);">Faça login</a>
             para avaliar este produto.
           </p>
         `}
@@ -1126,8 +1126,8 @@ const PaginaLogin = {
     const user = Utils.getLoggedUser();
     if (user) {
       window.location.href = user.role === 'admin'
-        ? 'dashboard.html'
-        : '../index.html';
+        ? '/dashboard'
+        : '/';
       return;
     }
     Loading.ocultar();
@@ -1160,8 +1160,8 @@ const PaginaLogin = {
       Toast.sucesso('Login realizado! Redirecionando...');
       setTimeout(() => {
         window.location.href = resp.user.role === 'admin'
-          ? 'dashboard.html'
-          : '../index.html';
+          ? '/dashboard'
+          : '/';
       }, 800);
     } catch (err) {
       Toast.erro(err.message);
@@ -1290,7 +1290,7 @@ const PaginaCadastro = {
       });
 
       Toast.sucesso('Conta criada com sucesso! Faça login. 🎣');
-      setTimeout(() => window.location.href = 'admin/login.html', 1500);
+      setTimeout(() => window.location.href = '/login', 1500);
     } catch (err) {
       Toast.erro(err.message);
       btn.disabled = false;
@@ -1307,7 +1307,7 @@ const PaginaMeusPedidos = {
   async init() {
     const user = Utils.getLoggedUser();
     if (!user) {
-      window.location.href = 'admin/login.html';
+      window.location.href = '/login';
       return;
     }
     NavAuth.render();
@@ -1332,7 +1332,7 @@ const PaginaMeusPedidos = {
           <div style="font-size:3rem;margin-bottom:12px;">📦</div>
           <h3>Nenhum pedido ainda.</h3>
           <p style="margin-top:8px;">
-            <a href="index.html" style="color:var(--azul-claro);">
+            <a href="/" style="color:var(--azul-claro);">
               Comece a explorar nossa loja!
             </a>
           </p>
@@ -1413,7 +1413,7 @@ const PaginaFavoritos = {
   async init() {
     const user = Utils.getLoggedUser();
     if (!user) {
-      window.location.href = 'admin/login.html';
+      window.location.href = '/login';
       return;
     }
     NavAuth.render();
@@ -1438,7 +1438,7 @@ const PaginaFavoritos = {
           <div style="font-size:3rem;margin-bottom:12px;">❤️</div>
           <h3>Nenhum favorito ainda.</h3>
           <p style="margin-top:8px;">
-            <a href="index.html" style="color:var(--azul-claro);">
+            <a href="/" style="color:var(--azul-claro);">
               Explore os produtos e salve seus favoritos!
             </a>
           </p>
@@ -1989,38 +1989,39 @@ const Router = {
     Toast.init();
 
     const path  = window.location.pathname;
-    const pagina = path.split('/').pop() || 'index.html';
+    // Remove a barra inicial e o .html se existir, para obter a "página limpa"
+    const pagina = path === '/' ? '/' : path.substring(1).replace(/\.html$/, '');
 
-    if (pagina === 'index.html' || pagina === '' || pagina === '/') {
+    if (pagina === '/' || pagina === 'index') { // 'index' para compatibilidade se alguém digitar index.html
       const user = Utils.getLoggedUser();
       if (user && user.role === 'admin') {
-        window.location.href = 'admin/dashboard.html';
+        window.location.href = '/dashboard'; // Alterado
         return;
       }
       Carrinho.init();
-      MenuMobile.init();  // << ADICIONADO
+      MenuMobile.init();
       PaginaLoja.init();
 
-    } else if (pagina === 'produto.html') {
+    } else if (pagina === 'produto') { // produto.html?id=...
       Carrinho.init();
-      MenuMobile.init();  // << ADICIONADO
+      MenuMobile.init();
       PaginaDetalhe.init();
 
-    } else if (pagina === 'login.html') {
+    } else if (pagina === 'login') { // Alterado
       PaginaLogin.init();
 
-    } else if (pagina === 'cadastro.html') {
+    } else if (pagina === 'cadastro') { // Alterado
       PaginaCadastro.init();
 
-    } else if (pagina === 'dashboard.html') {
+    } else if (pagina === 'dashboard') { // Alterado
       PaginaDashboard.init();
 
-    } else if (pagina === 'meus-pedidos.html') {
-      MenuMobile.init();  // << ADICIONADO
+    } else if (pagina === 'pedidos') { // Alterado
+      MenuMobile.init();
       PaginaMeusPedidos.init();
 
-    } else if (pagina === 'favoritos.html') {
-      MenuMobile.init();  // << ADICIONADO
+    } else if (pagina === 'favoritos') { // Alterado
+      MenuMobile.init();
       PaginaFavoritos.init();
 
     } else {
