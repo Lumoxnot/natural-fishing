@@ -212,7 +212,7 @@ const NavAuth = {
           <button class="btn-nav btn-nav-login"
             onclick="window.location.href='/login'">Entrar</button>
           <button class="btn-nav btn-nav-cadastro"
-            onclick="window.location.href='cadastro.html'">Cadastrar</button>
+            onclick="window.location.href='/cadastro'">Cadastrar</button>
         </div>`;
     } else if (user.role === 'admin') {
       container.innerHTML = `
@@ -240,7 +240,7 @@ const NavAuth = {
           </div>
           <span title="${user.email}">👤 ${user.nome || user.email}</span>
           <button class="btn-nav btn-nav-login"
-            onclick="window.location.href='meus-pedidos.html'">Pedidos</button>
+            onclick="window.location.href='/pedidos'">Pedidos</button>
           <button class="btn-nav btn-nav-sair" onclick="NavAuth.sair()">Sair</button>
         </div>`;
       Notificacoes.init();
@@ -284,7 +284,7 @@ const MenuMobile = {
         <button class="mobile-menu-item" onclick="MenuMobile.ir('/login')">
           <span class="icone-menu">🔑</span> Entrar
         </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('cadastro.html')">
+        <button class="mobile-menu-item" onclick="MenuMobile.ir('/cadastro')">
           <span class="icone-menu">📝</span> Cadastrar
         </button>
       `;
@@ -310,12 +310,12 @@ const MenuMobile = {
           <div class="email">${user.email}</div>
         </div>
         ${itemLoja}
-        <button class="mobile-menu-item ${paginaAtual === 'meus-pedidos.html' ? 'mobile-menu-ativo' : ''}"
-          onclick="MenuMobile.ir('meus-pedidos.html')">
+        <button class="mobile-menu-item ${paginaAtual === '/pedidos' ? 'mobile-menu-ativo' : ''}"
+          onclick="MenuMobile.ir('/pedidos')">
           <span class="icone-menu">📦</span> Meus Pedidos
         </button>
-        <button class="mobile-menu-item ${paginaAtual === 'favoritos.html' ? 'mobile-menu-ativo' : ''}"
-          onclick="MenuMobile.ir('favoritos.html')">
+        <button class="mobile-menu-item ${paginaAtual === '/favoritos' ? 'mobile-menu-ativo' : ''}"
+          onclick="MenuMobile.ir('/favoritos')">
           <span class="icone-menu">❤️</span> Favoritos
         </button>
         <div class="mobile-menu-divider"></div>
@@ -736,7 +736,7 @@ const Carrinho = {
       this.atualizarBadge();
       this.fechar();
 
-      setTimeout(() => window.location.href = 'meus-pedidos.html', 1500);
+      setTimeout(() => window.location.href = '/pedidos', 1500);
 
     } catch (err) {
       Toast.erro(err.message);
@@ -1493,7 +1493,7 @@ const PaginaDashboard = {
     const user = Utils.getLoggedUser();
     if (!user || user.role !== 'admin') {
       Utils.removeToken();
-      window.location.href = 'login.html';
+      window.location.href = '/login';
       return;
     }
 
@@ -1975,7 +1975,7 @@ const PaginaDashboard = {
     // Sair
     document.getElementById('btn-sair')?.addEventListener('click', () => {
       Utils.removeToken();
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     });
   }
 };
