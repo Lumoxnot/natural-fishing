@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabase'); // Ajuste o caminho conforme sua estrutura
 
 async function listarProdutos(req, res) {
   try {
@@ -9,6 +9,7 @@ async function listarProdutos(req, res) {
       .select(`
         id, nome, descricao, preco, imagem_url,
         categoria, estoque, vendas, ativo,
+        cores, imagens, especificacoes, info_frete, info_seguranca,
         avaliacoes(nota)
       `)
       .eq('ativo', true);
@@ -54,6 +55,7 @@ async function obterProduto(req, res) {
       .select(`
         id, nome, descricao, preco, imagem_url,
         categoria, estoque, vendas, ativo, created_at,
+        cores, imagens, especificacoes, info_frete, info_seguranca,
         avaliacoes(
           id, nota, comentario, created_at,
           usuarios(nome)
@@ -78,12 +80,16 @@ async function obterProduto(req, res) {
       total_avaliacoes: notas.length
     });
   } catch (err) {
+    console.error('Erro ao obter produto:', err); // Adicionado log para depuração
     return res.status(500).json({ erro: 'Erro interno.' });
   }
 }
 
 async function criarProduto(req, res) {
-  const { nome, descricao, preco, imagem_url, categoria, estoque } = req.body;
+  const {
+    nome, descricao, preco, imagem_url, categoria, estoque,
+    cores, imagens, especificacoes, info_frete, info_seguranca
+  } = req.body;
 
   if (!nome || !preco || !categoria) {
     return res.status(400).json({ erro: 'Nome, preço e categoria são obrigatórios.' });
@@ -94,6 +100,10 @@ async function criarProduto(req, res) {
   if (estoque !== undefined && (isNaN(estoque) || parseInt(estoque) < 0)) {
     return res.status(400).json({ erro: 'Estoque inválido.' });
   }
+  // Validação básica para imagens
+  if (!imagens || imagens.length === 0) {
+    return res.status(400).json({ erro: 'Pelo menos uma imagem é obrigatória.' });
+  }
 
   try {
     const { data, error } = await supabase
@@ -102,25 +112,35 @@ async function criarProduto(req, res) {
         nome: nome.trim(),
         descricao: descricao?.trim() || null,
         preco: parseFloat(preco),
-        imagem_url: imagem_url || null,
+        imagem_url: imagem_url || (imagens.length > 0 ? imagens[0] : null), // Fallback para imagem_url
         categoria: categoria.trim(),
-        estoque: parseInt(estoque) || 0
+        estoque: parseInt(estoque) || 0,
+        cores: cores || [],
+        imagens: imagens || [],
+        especificacoes: especificacoes || {},
+        info_frete: info_frete || {},
+        info_seguranca: info_seguranca || {}
       }])
       .select()
       .single();
 
     if (error) throw error;
 
-    await registrarLog(req.user.id, 'CRIAR_PRODUTO', 'produtos', data.id, { nome }, req.ip);
+    // req.user.id deve vir de um middleware de autenticação
+    await registrarLog(req.user?.id, 'CRIAR_PRODUTO', 'produtos', data.id, { nome }, req.ip);
     return res.status(201).json({ mensagem: 'Produto criado.', produto: data });
   } catch (err) {
+    console.error('Erro ao criar produto:', err); // Adicionado log para depuração
     return res.status(500).json({ erro: 'Erro ao criar produto.' });
   }
 }
 
 async function atualizarProduto(req, res) {
   const { id } = req.params;
-  const { nome, descricao, preco, imagem_url, categoria, estoque, ativo } = req.body;
+  const {
+    nome, descricao, preco, imagem_url, categoria, estoque, ativo,
+    cores, imagens, especificacoes, info_frete, info_seguranca
+  } = req.body;
 
   const updates = {};
   if (nome !== undefined) updates.nome = nome.trim();
@@ -130,6 +150,21 @@ async function atualizarProduto(req, res) {
   if (categoria !== undefined) updates.categoria = categoria.trim();
   if (estoque !== undefined) updates.estoque = parseInt(estoque);
   if (ativo !== undefined) updates.ativo = ativo;
+
+  // Novas colunas
+  if (cores !== undefined) updates.cores = cores;
+  if (imagens !== undefined) updates.imagens = imagens;
+  if (especificacoes !== undefined) updates.especificacoes = especificacoes;
+  if (info_frete !== undefined) updates.info_frete = info_frete;
+  if (info_seguranca !== undefined) updates.info_seguranca = info_seguranca;
+
+  // Se imagens for atualizado, garantir que imagem_url também seja (primeira imagem)
+  if (imagens && imagens.length > 0) {
+    updates.imagem_url = imagens[0];
+  } else if (imagens && imagens.length === 0) {
+    updates.imagem_url = null; // Se todas as imagens forem removidas
+  }
+
 
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ erro: 'Nenhum campo para atualizar.' });
@@ -147,9 +182,11 @@ async function atualizarProduto(req, res) {
       return res.status(404).json({ erro: 'Produto não encontrado.' });
     }
 
-    await registrarLog(req.user.id, 'ATUALIZAR_PRODUTO', 'produtos', id, updates, req.ip);
+    // req.user.id deve vir de um middleware de autenticação
+    await registrarLog(req.user?.id, 'ATUALIZAR_PRODUTO', 'produtos', id, updates, req.ip);
     return res.status(200).json({ mensagem: 'Produto atualizado.', produto: data });
   } catch (err) {
+    console.error('Erro ao atualizar produto:', err); // Adicionado log para depuração
     return res.status(500).json({ erro: 'Erro ao atualizar produto.' });
   }
 }
@@ -157,26 +194,36 @@ async function atualizarProduto(req, res) {
 async function deletarProduto(req, res) {
   const { id } = req.params;
   try {
+    // A remoção lógica (ativo: false) é uma boa prática
     const { error } = await supabase
       .from('produtos')
       .update({ ativo: false })
       .eq('id', id);
 
     if (error) throw error;
-    await registrarLog(req.user.id, 'DELETAR_PRODUTO', 'produtos', id, {}, req.ip);
+    // req.user.id deve vir de um middleware de autenticação
+    await registrarLog(req.user?.id, 'DELETAR_PRODUTO', 'produtos', id, {}, req.ip);
     return res.status(200).json({ mensagem: 'Produto removido.' });
   } catch (err) {
+    console.error('Erro ao deletar produto:', err); // Adicionado log para depuração
     return res.status(500).json({ erro: 'Erro ao remover produto.' });
   }
 }
 
 async function registrarLog(adminId, acao, entidade, entidadeId, detalhes, ip) {
+  // Garantir que adminId não seja undefined se o middleware de auth falhar
+  if (!adminId) {
+    console.warn('Tentativa de registrar log sem adminId. Ação:', acao);
+    return;
+  }
   try {
     await supabase.from('admin_logs').insert([{
       admin_id: adminId, acao, entidade,
       entidade_id: entidadeId, detalhes, ip
     }]);
-  } catch {}
+  } catch (logErr) {
+    console.error('Erro ao registrar log de admin:', logErr);
+  }
 }
 
 module.exports = { listarProdutos, obterProduto, criarProduto, atualizarProduto, deletarProduto };
