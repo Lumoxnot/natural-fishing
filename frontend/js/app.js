@@ -255,135 +255,6 @@ const NavAuth = {
 };
 
 // ============================================================
-// MENU MOBILE
-// ============================================================
-const MenuMobile = {
-  aberto: false,
-
-  init() {
-    this.bindEventos();
-    this.renderizar();
-  },
-
-  renderizar() {
-    const body = document.getElementById('mobile-menu-body');
-    if (!body) return;
-
-    const user        = Utils.getLoggedUser();
-    const paginaAtual = window.location.pathname.split('/').pop() || '/';
-
-    const itemLoja = `
-      <button class="mobile-menu-item" onclick="MenuMobile.ir('/')">
-        <span class="icone-menu">🎣</span> Loja
-      </button>`;
-
-    if (!user) {
-      body.innerHTML = `
-        ${itemLoja}
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('/login')">
-          <span class="icone-menu">🔑</span> Entrar
-        </button>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('/cadastro')">
-          <span class="icone-menu">📝</span> Cadastrar
-        </button>
-      `;
-    } else if (user.role === 'admin') {
-      body.innerHTML = `
-        <div class="mobile-menu-usuario">
-          <div class="nome">👤 ${user.nome || 'Admin'}</div>
-          <div class="email">${user.email}</div>
-        </div>
-        <button class="mobile-menu-item" onclick="MenuMobile.ir('/dashboard')">
-          <span class="icone-menu">📊</span> Painel Admin
-        </button>
-        ${itemLoja}
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
-          <span class="icone-menu">🚪</span> Sair
-        </button>
-      `;
-    } else {
-      body.innerHTML = `
-        <div class="mobile-menu-usuario">
-          <div class="nome">👤 ${user.nome || 'Usuário'}</div>
-          <div class="email">${user.email}</div>
-        </div>
-        ${itemLoja}
-        <button class="mobile-menu-item ${paginaAtual === '/pedidos' ? 'mobile-menu-ativo' : ''}"
-          onclick="MenuMobile.ir('/pedidos')">
-          <span class="icone-menu">📦</span> Meus Pedidos
-        </button>
-        <button class="mobile-menu-item ${paginaAtual === '/favoritos' ? 'mobile-menu-ativo' : ''}"
-          onclick="MenuMobile.ir('/favoritos')">
-          <span class="icone-menu">❤️</span> Favoritos
-        </button>
-        <div class="mobile-menu-divider"></div>
-        <button class="mobile-menu-item mobile-menu-sair" onclick="MenuMobile.sair()">
-          <span class="icone-menu">🚪</span> Sair
-        </button>
-      `;
-    }
-  },
-
-  abrir() {
-    this.aberto = true;
-    document.getElementById('mobile-menu')?.classList.add('aberto');
-    document.getElementById('mobile-menu-overlay')?.classList.add('ativo');
-    document.getElementById('btn-hamburger')?.classList.add('ativo');
-    document.body.style.overflow = 'hidden';
-  },
-
-  fechar() {
-    this.aberto = false;
-    document.getElementById('mobile-menu')?.classList.remove('aberto');
-    document.getElementById('mobile-menu-overlay')?.classList.remove('ativo');
-    document.getElementById('btn-hamburger')?.classList.remove('ativo');
-    document.body.style.overflow = '';
-  },
-
-  toggle() {
-    this.aberto ? this.fechar() : this.abrir();
-  },
-
-  ir(url) {
-    this.fechar();
-    setTimeout(() => window.location.href = url, 200);
-  },
-
-  irAncora(ancora) {
-    this.fechar();
-    setTimeout(() => {
-      const el = document.querySelector(ancora);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 300);
-  },
-
-  sair() {
-    this.fechar();
-    Utils.removeToken();
-    Toast.sucesso('Até logo! 🎣');
-    setTimeout(() => window.location.href = '/', 800);
-  },
-
-  bindEventos() {
-    document.getElementById('btn-hamburger')
-      ?.addEventListener('click', () => this.toggle());
-
-    document.getElementById('btn-fechar-menu')
-      ?.addEventListener('click', () => this.fechar());
-
-    document.getElementById('mobile-menu-overlay')
-      ?.addEventListener('click', () => this.fechar());
-
-    document.getElementById('btn-abrir-carrinho-mobile')
-      ?.addEventListener('click', () => {
-        this.fechar();
-        Carrinho.abrir();
-      });
-  }
-};
-// ============================================================
 // NOTIFICAÇÕES
 // ============================================================
 const Notificacoes = {
@@ -534,7 +405,7 @@ const Carrinho = {
         // Guardamos o preço do produto como referência visual,
         // mas o backend SEMPRE recalcula no finalizar pedido
         preco: produto.preco,
-        imagem_url: produto.imagem_url,
+        imagem_url: (produto.imagens && produto.imagens[0]) || produto.imagem_url, // Usa primeira imagem ou fallback
         quantidade: 1,
         estoque: produto.estoque
       });
@@ -582,6 +453,8 @@ const Carrinho = {
   atualizarBadge() {
     const b = document.getElementById('badge-carrinho');
     if (b) b.textContent = this.quantidadeTotal();
+    const bm = document.getElementById('badge-carrinho-mobile');
+    if (bm) bm.textContent = this.quantidadeTotal();
   },
 
   abrir() {
@@ -616,7 +489,7 @@ const Carrinho = {
   renderizar() {
     const container = document.getElementById('carrinho-itens');
     const footer    = document.getElementById('carrinho-footer');
-    const valorTotal = document.getElementById('valor-total');
+    // const valorTotal = document.getElementById('valor-total'); // Não usado diretamente aqui
 
     if (!container) return;
 
@@ -633,9 +506,9 @@ const Carrinho = {
     container.innerHTML = this.itens.map(item => `
       <div class="item-carrinho">
         <img
-          src="${item.imagem_url || 'https://via.placeholder.com/64?text=🎣'}"
+          src="${item.imagem_url || 'https://placehold.co/64?text=🎣'}"
           alt="${item.nome}"
-          onerror="this.src='https://via.placeholder.com/64?text=🎣'"
+          onerror="this.src='https://placehold.co/64?text=🎣'"
         />
         <div class="item-info">
           <div class="item-nome">${item.nome}</div>
@@ -797,7 +670,7 @@ const PaginaLoja = {
   },
 
   renderizarProdutos(lista) {
-    const grid    = document.getElementById('grid-produtos');
+    const grid     = document.getElementById('grid-produtos');
     const contagem = document.getElementById('contagem-produtos');
     if (!grid) return;
 
@@ -814,22 +687,22 @@ const PaginaLoja = {
 
     grid.innerHTML = lista.map(p => {
       const esgotado = p.estoque === 0;
-      const estoqueBaixo = p.estoque > 0 && p.estoque <= 3;
       const favoritado = this.favoritos.includes(p.id);
+      const imagemPrincipal = (p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/400x300?text=🎣';
 
       return `
-        <article class="card-produto ${esgotado ? 'esgotado' : ''}" tabindex="0">
+        <article class="card-produto ${esgotado ? 'esgotado' : ''}" tabindex="0"
+          role="button" onclick="window.location.href='produto.html?id=${p.id}'">
           <div class="card-img-wrapper">
             <img class="card-produto-img"
-              src="${p.imagem_url || 'https://via.placeholder.com/400x300?text=🎣'}"
+              src="${imagemPrincipal}"
               alt="${p.nome}" loading="lazy"
-              onerror="this.src='https://via.placeholder.com/400x300?text=🎣'"/>
+              onerror="this.src='https://placehold.co/400x300?text=🎣'"/>
             <span class="badge-categoria">${Utils.formatarCategoria(p.categoria)}</span>
             ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
-            ${estoqueBaixo ? `<span class="badge-estoque-baixo">Últimas ${p.estoque}!</span>` : ''}
             ${Utils.getToken() ? `
               <button class="btn-favorito ${favoritado ? 'ativo' : ''}"
-                onclick="PaginaLoja.toggleFavorito(event, '${p.id}')"
+                onclick="event.stopPropagation();PaginaLoja.toggleFavorito(event, '${p.id}')"
                 title="${favoritado ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
                 ${favoritado ? '❤️' : '🤍'}
               </button>` : ''}
@@ -837,6 +710,16 @@ const PaginaLoja = {
           <div class="card-body">
             <h3 class="card-nome">${p.nome}</h3>
             <p class="card-descricao">${p.descricao || 'Produto de qualidade para pesca.'}</p>
+            ${p.cores && p.cores.length > 0 ? `
+              <div class="card-cores">
+                ${p.cores.slice(0,5).map(c => `
+                  <span class="card-cor-bolinha"
+                    style="background:${c.hex}"
+                    title="${c.nome}"></span>
+                `).join('')}
+                ${p.cores.length > 5 ? `<span style="font-size:0.72rem;color:#888;">+${p.cores.length - 5}</span>` : ''}
+              </div>
+            ` : ''}
             ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
             <div class="card-preco">${Utils.formatarMoeda(p.preco)}</div>
             ${!esgotado ? `<small style="color:#888;font-size:0.72rem;">
@@ -844,13 +727,10 @@ const PaginaLoja = {
             </small>` : ''}
           </div>
           <div class="card-footer">
-            <button class="btn-detalhes"
-              onclick="window.location.href='produto.html?id=${p.id}'">
-              Detalhes
-            </button>
-            <button class="btn-comprar" ${esgotado ? 'disabled' : ''}
-              onclick="${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}">
-              ${esgotado ? 'Esgotado' : '🛒 Comprar'}
+            <button class="btn-comprar"
+              onclick="event.stopPropagation();${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}"
+              ${esgotado ? 'disabled' : ''}>
+              ${esgotado ? 'Esgotado' : '🛒 Adicionar ao Carrinho'}
             </button>
           </div>
         </article>
@@ -921,7 +801,7 @@ const PaginaLoja = {
     filtroOrdem?.addEventListener('change', async () => {
       this.filtros.ordenar = filtroOrdem.value;
       await this.carregarProdutos();
-    });
+    }, 600);
 
     btnLimpar?.addEventListener('click', async () => {
       this.filtros = { busca:'', categoria:'todos', preco_min:'', preco_max:'', ordenar:'' };
@@ -940,21 +820,38 @@ const PaginaLoja = {
 // ============================================================
 const PaginaDetalhe = {
   produto: null,
+  produtosRelacionados: [],
+  favoritos: [],
 
   async init() {
     const id = Utils.getParam('id');
-    if (!id) { window.location.href = '/'; return; } // Alterado para URL limpa
+    if (!id) { window.location.href = '/'; return; }
     NavAuth.render();
     Loading.mostrar('Carregando produto...');
     try {
       this.produto = await API.obterProduto(id);
+      if (Utils.getToken()) {
+        const favs = await API.meurosFavoritos();
+        this.favoritos = favs.map(f => f.id);
+      }
+      await this.carregarProdutosRelacionados(id, this.produto.categoria);
       this.renderizar();
     } catch (err) {
       Toast.erro(err.message);
-      // Redireciona para a loja se o produto não for encontrado
       setTimeout(() => window.location.href = '/', 1500);
     } finally {
       Loading.ocultar();
+    }
+  },
+
+  async carregarProdutosRelacionados(produtoId, categoria) {
+    try {
+      const filtros = { categoria: categoria };
+      const todosProdutos = await API.listarProdutos(filtros);
+      this.produtosRelacionados = todosProdutos.filter(p => p.id !== produtoId).slice(0, 4);
+    } catch (err) {
+      console.error('Erro ao carregar produtos relacionados:', err);
+      this.produtosRelacionados = [];
     }
   },
 
@@ -965,16 +862,182 @@ const PaginaDetalhe = {
 
     document.title = `${p.nome} — Natural Fishing`;
     const esgotado = p.estoque === 0;
-    const user = Utils.getLoggedUser(); // Para verificar se o usuário está logado para favoritar
+    const user     = Utils.getLoggedUser();
+
+    const imagens = (p.imagens && p.imagens.length > 0)
+      ? p.imagens
+      : (p.imagem_url ? [p.imagem_url] : []);
+    const imagemPrincipal = imagens[0] || 'https://placehold.co/600x600?text=🎣';
+
+    const galeriaHtml = imagens.length > 1 ? `
+      <div class="galeria-miniaturas">
+        ${imagens.map((img, idx) => `
+          <button class="miniatura ${idx === 0 ? 'ativa' : ''}"
+            onclick="PaginaDetalhe.trocarImagem('${img}', this)"
+            type="button">
+            <img src="${img}" alt="Imagem ${idx + 1}"
+              onerror="this.src='https://placehold.co/80x80?text=🎣'"/>
+          </button>
+        `).join('')}
+      </div>
+    ` : '';
+
+    const coresHtml = (p.cores && p.cores.length > 0) ? `
+      <div class="detalhe-cores">
+        <p class="detalhe-cores-label">Cores disponíveis:</p>
+        <div class="detalhe-cores-lista" id="cores-selecionaveis">
+          ${p.cores.map((cor, idx) => `
+            <button class="cor-opcao ${idx === 0 ? 'selecionada' : ''}"
+              style="--cor-bg: ${cor.hex}"
+              onclick="PaginaDetalhe.selecionarCor(this, '${cor.nome}')"
+              title="${cor.nome}" type="button">
+              <span class="cor-bolinha" style="background:${cor.hex}"></span>
+              <span class="cor-label">${cor.nome}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    const specs = p.especificacoes || {};
+    const specsItens = [
+      { label: 'Material',   valor: specs.material },
+      { label: 'Peso',       valor: specs.peso },
+      { label: 'Dimensões',  valor: specs.dimensoes },
+      { label: 'Marca',      valor: specs.marca },
+      { label: 'Modelo',     valor: specs.modelo },
+      { label: 'Garantia',   valor: specs.garantia },
+    ].filter(s => s.valor);
+
+    const especificacoesHtml = specsItens.length > 0 ? `
+      <div class="info-bloco">
+        <h3>⚙️ Especificações Técnicas</h3>
+        <table class="specs-tabela">
+          ${specsItens.map(s => `
+            <tr>
+              <td class="spec-chave">${s.label}</td>
+              <td class="spec-valor">${s.valor}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    ` : '';
+
+    const frete = p.info_frete || {};
+    const freteItens = [
+      { label: 'Prazo',        valor: frete.prazo },
+      { label: 'Custo',        valor: frete.custo },
+      { label: 'Regiões',      valor: frete.regioes },
+      { label: 'Rastreamento', valor: frete.rastreamento },
+    ].filter(f => f.valor);
+
+    const freteHtml = (freteItens.length > 0 || (frete.selos && frete.selos.length > 0)) ? `
+      <div class="info-bloco">
+        <h3>🚚 Frete e Entrega</h3>
+        <table class="specs-tabela">
+          ${freteItens.map(f => `
+            <tr>
+              <td class="spec-chave">${f.label}</td>
+              <td class="spec-valor">${f.valor}</td>
+            </tr>
+          `).join('')}
+        </table>
+        ${frete.selos && frete.selos.length > 0 ? `
+          <div class="selos-lista">
+            ${frete.selos.map(s => `
+              <span class="selo-badge selo-verde">✔ ${s}</span>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
+
+    const seg = p.info_seguranca || {};
+    const segItens = [
+      { label: 'Pagamento',   valor: seg.pagamento },
+      { label: 'Devolução',   valor: seg.devolucao },
+      { label: 'Privacidade', valor: seg.privacidade },
+    ].filter(s => s.valor);
+
+    const segurancaHtml = (segItens.length > 0 || (seg.selos && seg.selos.length > 0)) ? `
+      <div class="info-bloco">
+        <h3>🔒 Compra Segura</h3>
+        <table class="specs-tabela">
+          ${segItens.map(s => `
+            <tr>
+              <td class="spec-chave">${s.label}</td>
+              <td class="spec-valor">${s.valor}</td>
+            </tr>
+          `).join('')}
+        </table>
+        ${seg.selos && seg.selos.length > 0 ? `
+          <div class="selos-lista">
+            ${seg.selos.map(s => `
+              <span class="selo-badge selo-azul">🔒 ${s}</span>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
+
+    const infoExtraHtml = (especificacoesHtml || freteHtml || segurancaHtml) ? `
+      <section class="secao-info-extra">
+        ${especificacoesHtml}
+        ${freteHtml}
+        ${segurancaHtml}
+      </section>
+    ` : '';
+
+    const produtosRelacionadosHtml = this.produtosRelacionados.length > 0 ? `
+      <section class="secao-produtos-relacionados">
+        <h2>Outros produtos que você pode gostar</h2>
+        <div class="grid-produtos">
+          ${this.produtosRelacionados.map(prod => {
+            const prodEsgotado = prod.estoque === 0;
+            const imgProd = (prod.imagens && prod.imagens[0]) || prod.imagem_url || 'https://placehold.co/400x300?text=🎣';
+            return `
+              <article class="card-produto ${prodEsgotado ? 'esgotado' : ''}"
+                role="button" tabindex="0"
+                onclick="window.location.href='produto.html?id=${prod.id}'"
+                style="cursor:pointer;">
+                <div class="card-img-wrapper">
+                  <img class="card-produto-img"
+                    src="${imgProd}"
+                    alt="${prod.nome}" loading="lazy"
+                    onerror="this.src='https://placehold.co/400x300?text=🎣'"/>
+                  <span class="badge-categoria">${Utils.formatarCategoria(prod.categoria)}</span>
+                  ${prodEsgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
+                </div>
+                <div class="card-body">
+                  <h3 class="card-nome">${prod.nome}</h3>
+                  ${Utils.renderEstrelas(prod.media_avaliacao, prod.total_avaliacoes)}
+                  <div class="card-preco">${Utils.formatarMoeda(prod.preco)}</div>
+                </div>
+                <div class="card-footer">
+                  <button class="btn-comprar"
+                    onclick="event.stopPropagation();${prodEsgotado ? '' : `Carrinho.adicionar(${JSON.stringify(prod).replace(/"/g,'&quot;')})`}"
+                    ${prodEsgotado ? 'disabled' : ''}>
+                    ${prodEsgotado ? 'Esgotado' : '🛒 Comprar'}
+                  </button>
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
+      </section>
+    ` : '';
 
     container.innerHTML = `
       <a href="/" class="btn-voltar">← Voltar para produtos</a>
       <div class="detalhe-card">
-        <div class="detalhe-img-wrapper">
-          <img class="detalhe-img"
-            src="${p.imagem_url || 'https://via.placeholder.com/600x420?text=🎣'}"
-            alt="${p.nome}"
-            onerror="this.src='https://via.placeholder.com/600x420?text=🎣'"/>
+        <div class="detalhe-esquerda">
+          <div class="detalhe-img-wrapper">
+            <img class="detalhe-img" id="detalhe-img-principal"
+              src="${imagemPrincipal}"
+              alt="${p.nome}"
+              onerror="this.src='https://placehold.co/600x600?text=🎣'"/>
+          </div>
+          ${galeriaHtml}
         </div>
         <div class="detalhe-info">
           <span class="detalhe-categoria">${Utils.formatarCategoria(p.categoria)}</span>
@@ -984,13 +1047,15 @@ const PaginaDetalhe = {
           <p class="detalhe-descricao">
             ${p.descricao || 'Produto de alta qualidade para pesca, ideal para suas aventuras.'}
           </p>
+          ${coresHtml}
           ${esgotado
-            ? `<div class="badge-esgotado" style="position:static;display:inline-block;margin-bottom:12px;">
-                Produto Esgotado
-              </div>`
-            : `<p style="font-size:0.8rem;color:#888;margin-bottom:12px;">
-                📦 ${p.estoque} unidade${p.estoque !== 1 ? 's' : ''} em estoque
-              </p>`
+            ? `<div class="badge-esgotado"
+                style="position:static;display:inline-block;margin-bottom:12px;">
+                 Produto Esgotado
+               </div>`
+            : `<p style="font-size:0.82rem;color:#888;margin-bottom:8px;">
+                 📦 ${p.estoque} unidade${p.estoque !== 1 ? 's' : ''} em estoque
+               </p>`
           }
           <div class="detalhe-acoes">
             <button class="btn-comprar"
@@ -1000,50 +1065,13 @@ const PaginaDetalhe = {
             </button>
             ${user ? `
               <button class="btn-adicionar-favoritos" id="btn-favoritar-detalhe">
-                ❤️ Adicionar aos Favoritos
+                ${this.favoritos.includes(p.id) ? '❤️ Remover dos Favoritos' : '🤍 Adicionar aos Favoritos'}
               </button>` : ''}
           </div>
         </div>
       </div>
 
-      <div class="secao-info-extra">
-        <div class="info-bloco">
-          <h3><span style="font-size:1.2em;">⚙️</span> Especificações Técnicas</h3>
-          <ul>
-            <li><strong>Material:</strong> ${p.especificacoes?.material || 'Não informado'}</li>
-            <li><strong>Peso:</strong> ${p.especificacoes?.peso || 'Não informado'}</li>
-            <li><strong>Dimensões:</strong> ${p.especificacoes?.dimensoes || 'Não informado'}</li>
-            <li><strong>Cor:</strong> ${p.especificacoes?.cor || 'Não informado'}</li>
-            <li><strong>Marca:</strong> ${p.especificacoes?.marca || 'Não informado'}</li>
-          </ul>
-        </div>
-        <div class="info-bloco">
-          <h3><span style="font-size:1.2em;">🚚</span> Frete e Entrega</h3>
-          <ul>
-            <li><strong>Prazo:</strong> 3-7 dias úteis (pode variar por região)</li>
-            <li><strong>Custo:</strong> Frete grátis para compras acima de R$ 200,00</li>
-            <li><strong>Regiões:</strong> Entregamos em todo o Brasil</li>
-            <li><strong>Rastreamento:</strong> Código enviado por e-mail</li>
-          </ul>
-          <div class="selos-confianca">
-            <img src="https://via.placeholder.com/80x32?text=Frete" alt="Selo Frete Grátis"/>
-            <img src="https://via.placeholder.com/80x32?text=Rápido" alt="Selo Entrega Rápida"/>
-          </div>
-        </div>
-        <div class="info-bloco">
-          <h3><span style="font-size:1.2em;">🔒</span> Compra Segura</h3>
-          <ul>
-            <li><strong>Pagamento:</strong> Cartão de crédito, Pix, Boleto</li>
-            <li><strong>Privacidade:</strong> Seus dados 100% protegidos</li>
-            <li><strong>Devolução:</strong> 7 dias para troca ou devolução</li>
-            <li><strong>Garantia:</strong> Contra defeitos de fabricação</li>
-          </ul>
-          <div class="selos-confianca">
-            <img src="https://via.placeholder.com/80x32?text=SSL" alt="Selo SSL Seguro"/>
-            <img src="https://via.placeholder.com/80x32?text=ReclameAqui" alt="Selo Reclame Aqui"/>
-          </div>
-        </div>
-      </div>
+      ${infoExtraHtml}
 
       <div class="secao-avaliacoes">
         <h3>⭐ Avaliações dos clientes</h3>
@@ -1083,26 +1111,36 @@ const PaginaDetalhe = {
         `}
         <div id="lista-avaliacoes">Carregando avaliações...</div>
       </div>
+
+      ${produtosRelacionadosHtml}
     `;
 
-    // Botão adicionar ao carrinho
     if (!esgotado) {
       document.getElementById('btn-adicionar-detalhe')
         ?.addEventListener('click', () => Carrinho.adicionar(p));
     }
 
-    // Botão favoritar
     if (user) {
       document.getElementById('btn-favoritar-detalhe')
         ?.addEventListener('click', (e) => PaginaDetalhe.toggleFavorito(e, p.id));
     }
 
-    // Botão enviar avaliação
     document.getElementById('btn-enviar-avaliacao')
       ?.addEventListener('click', () => this.enviarAvaliacao());
 
-    // Carrega avaliações
     this.carregarAvaliacoes();
+  },
+
+  trocarImagem(url, btnEl) {
+    const img = document.getElementById('detalhe-img-principal');
+    if (img) img.src = url;
+    document.querySelectorAll('.miniatura').forEach(btn => btn.classList.remove('ativa'));
+    btnEl?.classList.add('ativa');
+  },
+
+  selecionarCor(btnEl, nomeCor) {
+    document.querySelectorAll('.cor-opcao').forEach(btn => btn.classList.remove('selecionada'));
+    btnEl?.classList.add('selecionada');
   },
 
   async toggleFavorito(e, produtoId) {
@@ -1174,7 +1212,6 @@ const PaginaDetalhe = {
         comentario: comentario || null
       });
       Toast.sucesso('Avaliação enviada! Obrigado. ⭐');
-      // Limpa o formulário de avaliação
       document.getElementById('comentario-avaliacao').value = '';
       document.querySelectorAll('input[name="nota"]').forEach(radio => radio.checked = false);
       await this.carregarAvaliacoes();
@@ -1250,17 +1287,14 @@ const PaginaCadastro = {
   },
 
   bindEventos() {
-    // Máscara telefone
     document.getElementById('telefone')?.addEventListener('input', function () {
       this.value = Utils.formatarTelefone(this.value);
     });
 
-    // Máscara CEP
     document.getElementById('cep')?.addEventListener('input', function () {
       this.value = Utils.formatarCEP(this.value);
     });
 
-    // Busca CEP
     document.getElementById('btn-buscar-cep')
       ?.addEventListener('click', () => this.buscarCEP());
 
@@ -1268,7 +1302,6 @@ const PaginaCadastro = {
       if (e.key === 'Enter') { e.preventDefault(); this.buscarCEP(); }
     });
 
-    // Submit
     document.getElementById('form-cadastro')
       ?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1320,7 +1353,6 @@ const PaginaCadastro = {
       estado:         document.getElementById('estado')?.value.trim()
     };
 
-    // Validações frontend
     if (Object.values(campos).some(v => !v)) {
       Toast.erro('Preencha todos os campos obrigatórios.');
       return;
@@ -1516,27 +1548,36 @@ const PaginaFavoritos = {
 
     grid.innerHTML = produtos.map(p => {
       const esgotado = p.estoque === 0;
+      const imagemPrincipal = (p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/400x300?text=🎣';
+
       return `
-        <article class="card-produto ${esgotado ? 'esgotado' : ''}">
+        <article class="card-produto ${esgotado ? 'esgotado' : ''}" tabindex="0"
+          role="button" onclick="window.location.href='produto.html?id=${p.id}'">
           <div class="card-img-wrapper">
             <img class="card-produto-img"
-              src="${p.imagem_url || 'https://via.placeholder.com/400x300?text=🎣'}"
+              src="${imagemPrincipal}"
               alt="${p.nome}" loading="lazy"
-              onerror="this.src='https://via.placeholder.com/400x300?text=🎣'"/>
+              onerror="this.src='https://placehold.co/400x300?text=🎣'"/>
             <span class="badge-categoria">${Utils.formatarCategoria(p.categoria)}</span>
             ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
           </div>
           <div class="card-body">
             <h3 class="card-nome">${p.nome}</h3>
+            ${p.cores && p.cores.length > 0 ? `
+              <div class="card-cores">
+                ${p.cores.slice(0,5).map(c => `
+                  <span class="card-cor-bolinha"
+                    style="background:${c.hex}"
+                    title="${c.nome}"></span>
+                `).join('')}
+                ${p.cores.length > 5 ? `<span style="font-size:0.72rem;color:#888;">+${p.cores.length - 5}</span>` : ''}
+              </div>
+            ` : ''}
             <div class="card-preco">${Utils.formatarMoeda(p.preco)}</div>
           </div>
           <div class="card-footer">
-            <button class="btn-detalhes"
-              onclick="window.location.href='produto.html?id=${p.id}'">
-              Detalhes
-            </button>
             <button class="btn-comprar" ${esgotado ? 'disabled' : ''}
-              onclick="${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}">
+              onclick="event.stopPropagation();${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}">
               ${esgotado ? 'Esgotado' : '🛒 Comprar'}
             </button>
           </div>
@@ -1556,6 +1597,7 @@ const PaginaDashboard = {
   cupons: [],
   secaoAtiva: 'produtos',
   idParaExcluir: null,
+  coresTemporarias: [],
 
   async init() {
     const user = Utils.getLoggedUser();
@@ -1583,6 +1625,275 @@ const PaginaDashboard = {
 
     this.bindEventos();
     this.ativarSecao('produtos');
+  },
+
+  // ===== HELPERS: IMAGENS =====
+  previewImagem(numero) {
+    const input   = document.getElementById(`imagem-url-${numero}`);
+    const preview = document.getElementById(`preview-imagem-${numero}`);
+    if (!input || !preview) return;
+
+    const url = input.value.trim();
+    if (!url) {
+      preview.innerHTML = '<span>Sem imagem</span>';
+      return;
+    }
+
+    preview.innerHTML = `
+      <img src="${url}"
+        alt="Preview ${numero}"
+        onerror="this.parentElement.innerHTML='<span style=color:#e74c3c>URL inválida</span>'"
+      />`;
+  },
+
+  // ===== HELPERS: CORES =====
+  adicionarCor() {
+    const nomeInput = document.getElementById('cor-nome-input');
+    const hexInput  = document.getElementById('cor-hex-input');
+    if (!nomeInput || !hexInput) return;
+
+    const nome = nomeInput.value.trim();
+    const hex  = hexInput.value;
+
+    if (!nome) { Toast.erro('Digite o nome da cor.'); return; }
+
+    const corExistente = this.coresTemporarias.find(c =>
+      c.nome.toLowerCase() === nome.toLowerCase()
+    );
+    if (corExistente) { Toast.erro('Essa cor já foi adicionada.'); return; }
+
+    this.coresTemporarias.push({ nome, hex });
+    nomeInput.value = '';
+    hexInput.value = '#e74c3c';
+
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+  },
+
+  removerCor(index) {
+    this.coresTemporarias.splice(index, 1);
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+  },
+
+  renderizarCoresAdmin() {
+    const lista = document.getElementById('cores-admin-lista');
+    if (!lista) return;
+
+    if (this.coresTemporarias.length === 0) {
+      lista.innerHTML = '<span style="color:#aaa;font-size:0.82rem;">Nenhuma cor adicionada.</span>';
+      return;
+    }
+
+    lista.innerHTML = this.coresTemporarias.map((cor, idx) => `
+      <div class="cor-admin-tag">
+        <span class="cor-admin-bolinha" style="background:${cor.hex};"></span>
+        <span>${cor.nome}</span>
+        <button type="button" onclick="PaginaDashboard.removerCor(${idx})"
+          title="Remover">×</button>
+      </div>
+    `).join('');
+  },
+
+  atualizarCoresHidden() {
+    const hidden = document.getElementById('produto-cores');
+    if (hidden) hidden.value = JSON.stringify(this.coresTemporarias);
+  },
+
+  // ===== SALVAR PRODUTO =====
+  async salvarProduto(e) {
+    e.preventDefault();
+
+    const id        = document.getElementById('produto-id')?.value;
+    const nome      = document.getElementById('produto-nome')?.value.trim();
+    const categoria = document.getElementById('produto-categoria')?.value;
+    const preco     = document.getElementById('produto-preco')?.value;
+    const estoque   = document.getElementById('produto-estoque')?.value;
+    const descricao = document.getElementById('produto-descricao')?.value.trim();
+
+    if (!nome || !categoria || !preco || estoque === undefined) {
+      Toast.erro('Preencha nome, categoria, preço e estoque.');
+      return;
+    }
+    if (parseFloat(preco) <= 0) { Toast.erro('Preço inválido.'); return; }
+    if (parseInt(estoque) < 0)  { Toast.erro('Estoque inválido.'); return; }
+
+    const imagem1 = document.getElementById('imagem-url-1')?.value.trim();
+    const imagem2 = document.getElementById('imagem-url-2')?.value.trim();
+    const imagem3 = document.getElementById('imagem-url-3')?.value.trim();
+    const imagens = [imagem1, imagem2, imagem3].filter(Boolean);
+
+    if (imagens.length === 0) {
+      Toast.erro('Adicione pelo menos uma imagem ao produto.');
+      return;
+    }
+
+    const cores = this.coresTemporarias.length > 0 ? this.coresTemporarias : [];
+
+    const especificacoes = {
+      material:   document.getElementById('spec-material')?.value.trim() || null,
+      peso:       document.getElementById('spec-peso')?.value.trim() || null,
+      dimensoes:  document.getElementById('spec-dimensoes')?.value.trim() || null,
+      marca:      document.getElementById('spec-marca')?.value.trim() || null,
+      modelo:     document.getElementById('spec-modelo')?.value.trim() || null,
+      garantia:   document.getElementById('spec-garantia')?.value.trim() || null,
+    };
+
+    const selosEntrega = [];
+    if (document.getElementById('selo-frete-gratis')?.checked) selosEntrega.push('Frete Grátis');
+    if (document.getElementById('selo-entrega-rapida')?.checked) selosEntrega.push('Entrega Rápida');
+    if (document.getElementById('selo-entrega-expressa')?.checked) selosEntrega.push('Entrega Expressa');
+
+    const info_frete = {
+      prazo:        document.getElementById('frete-prazo')?.value.trim() || null,
+      custo:        document.getElementById('frete-custo')?.value.trim() || null,
+      regioes:      document.getElementById('frete-regioes')?.value.trim() || null,
+      rastreamento: document.getElementById('frete-rastreamento')?.value.trim() || null,
+      selos:        selosEntrega,
+    };
+
+    const selosSeguranca = [];
+    if (document.getElementById('selo-ssl')?.checked) selosSeguranca.push('SSL Seguro');
+    if (document.getElementById('selo-reclame-aqui')?.checked) selosSeguranca.push('Reclame Aqui');
+    if (document.getElementById('selo-compra-segura')?.checked) selosSeguranca.push('Compra Segura');
+    if (document.getElementById('selo-satisfacao')?.checked) selosSeguranca.push('Satisfação Garantida');
+
+    const info_seguranca = {
+      pagamento:   document.getElementById('seguranca-pagamento')?.value.trim() || null,
+      devolucao:   document.getElementById('seguranca-devolucao')?.value.trim() || null,
+      privacidade: document.getElementById('seguranca-privacidade')?.value.trim() || null,
+      selos:       selosSeguranca,
+    };
+
+    const btn = document.getElementById('btn-salvar-produto');
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+
+    const dados = {
+      nome,
+      categoria,
+      preco:       parseFloat(preco),
+      estoque:     parseInt(estoque),
+      descricao:   descricao || null,
+      imagem_url:  imagens[0],
+      imagens,
+      cores,
+      especificacoes,
+      info_frete,
+      info_seguranca,
+    };
+
+    try {
+      if (id) {
+        await API.atualizarProduto(id, dados);
+        Toast.sucesso('Produto atualizado!');
+        this.cancelarEdicao();
+      } else {
+        await API.criarProduto(dados);
+        Toast.sucesso('Produto criado!');
+        document.getElementById('form-produto')?.reset();
+        this.coresTemporarias = [];
+        this.renderizarCoresAdmin();
+        [1,2,3].forEach(n => {
+          const p = document.getElementById(`preview-imagem-${n}`);
+          if (p) p.innerHTML = '<span>Sem imagem</span>';
+        });
+      }
+      await this.carregarProdutos();
+      await this.carregarStats();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar Produto'; }
+    }
+  },
+
+  // ===== EDITAR PRODUTO =====
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
   },
 
   ativarSecao(secao) {
@@ -1623,7 +1934,7 @@ const PaginaDashboard = {
             border-bottom:1px solid var(--cinza-claro);">
             <span style="font-weight:800;color:var(--azul-claro);
               min-width:20px;">${i + 1}.</span>
-            <img src="${p.imagem_url || 'https://via.placeholder.com/36?text=🎣'}"
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
               style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
             <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
             <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
@@ -1686,9 +1997,9 @@ const PaginaDashboard = {
       <tr>
         <td>
           <img class="tabela-img"
-            src="${p.imagem_url || 'https://via.placeholder.com/44?text=🎣'}"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
             alt="${p.nome}"
-            onerror="this.src='https://via.placeholder.com/44?text=🎣'"/>
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
         </td>
         <td style="font-weight:600;">${p.nome}</td>
         <td>${Utils.formatarCategoria(p.categoria)}</td>
@@ -1868,12 +2179,56 @@ const PaginaDashboard = {
     set('produto-categoria', p.categoria);
     set('produto-preco',     p.preco);
     set('produto-estoque',   p.estoque);
-    set('produto-imagem',    p.imagem_url || '');
     set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
 
     const titulo    = document.getElementById('titulo-form');
     const btnCancel = document.getElementById('btn-cancelar-edicao');
-
     if (titulo)    titulo.textContent = '✏️ Editando Produto';
     if (btnCancel) btnCancel.style.display = 'inline-flex';
 
@@ -1883,10 +2238,3227 @@ const PaginaDashboard = {
   cancelarEdicao() {
     document.getElementById('form-produto')?.reset();
     document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
 
     const titulo    = document.getElementById('titulo-form');
     const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
 
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '➕ Novo Produto';
+    if (btnCancel) btnCancel.style.display = 'none';
+  },
+
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
+    };
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
+
+  async carregarStats() {
+    try {
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
+      }
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
+    }
+  },
+
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
+    } finally {
+      btn.disabled =      false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
+    }
+  },
+
+  editarProduto(id) {
+    const p = this.produtos.find(x => x.id === id);
+    if (!p) return;
+
+    const set = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val ?? '';
+    };
+
+    // Campos básicos
+    set('produto-id',        p.id);
+    set('produto-nome',      p.nome);
+    set('produto-categoria', p.categoria);
+    set('produto-preco',     p.preco);
+    set('produto-estoque',   p.estoque);
+    set('produto-descricao', p.descricao || '');
+
+    // Imagens
+    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
+    [0,1,2].forEach(i => {
+      set(`imagem-url-${i+1}`, imagens[i] || '');
+      this.previewImagem(i+1);
+    });
+
+    // Cores
+    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
+    this.renderizarCoresAdmin();
+    this.atualizarCoresHidden();
+
+    // Especificações
+    const specs = p.especificacoes || {};
+    set('spec-material',  specs.material  || '');
+    set('spec-peso',      specs.peso      || '');
+    set('spec-dimensoes', specs.dimensoes || '');
+    set('spec-marca',     specs.marca     || '');
+    set('spec-modelo',    specs.modelo    || '');
+    set('spec-garantia',  specs.garantia  || '');
+
+    // Frete
+    const frete = p.info_frete || {};
+    set('frete-prazo',        frete.prazo        || '');
+    set('frete-custo',        frete.custo        || '');
+    set('frete-regioes',      frete.regioes      || '');
+    set('frete-rastreamento', frete.rastreamento || '');
+    const selosEntrega = frete.selos || [];
+    const checkFrete = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosEntrega.includes(nome);
+    };
+    checkFrete('selo-frete-gratis',   'Frete Grátis');
+    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
+    checkFrete('selo-entrega-expressa','Entrega Expressa');
+
+    // Segurança
+    const seg = p.info_seguranca || {};
+    set('seguranca-pagamento',   seg.pagamento   || '');
+    set('seguranca-devolucao',   seg.devolucao   || '');
+    set('seguranca-privacidade', seg.privacidade || '');
+    const selosSegs = seg.selos || [];
+    const checkSeg = (id, nome) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = selosSegs.includes(nome);
+    };
+    checkSeg('selo-ssl',           'SSL Seguro');
+    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
+    checkSeg('selo-compra-segura', 'Compra Segura');
+    checkSeg('selo-satisfacao',    'Satisfação Garantida');
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
+    if (titulo)    titulo.textContent = '✏️ Editando Produto';
+    if (btnCancel) btnCancel.style.display = 'inline-flex';
+
+    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  cancelarEdicao() {
+    document.getElementById('form-produto')?.reset();
+    document.getElementById('produto-id').value = '';
+    this.coresTemporarias = [];
+    this.renderizarCoresAdmin();
+    [1,2,3].forEach(n => {
+      const p = document.getElementById(`preview-imagem-${n}`);
+      if (p) p.innerHTML = '<span>Sem imagem</span>';
+    });
+    // Desmarca todos os checkboxes
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    const titulo    = document.getElementById('titulo-form');
+    const btnCancel = document.getElementById('btn-cancelar-edicao');
     if (titulo)    titulo.textContent = '➕ Novo Produto';
     if (btnCancel) btnCancel.style.display = 'none';
   },
@@ -1922,91 +5494,272 @@ const PaginaDashboard = {
     }
   },
 
-  async salvarProduto(e) {
-    e.preventDefault();
-    const id        = document.getElementById('produto-id')?.value;
-    const nome      = document.getElementById('produto-nome')?.value.trim();
-    const categoria = document.getElementById('produto-categoria')?.value;
-    const preco     = document.getElementById('produto-preco')?.value;
-    const estoque   = document.getElementById('produto-estoque')?.value;
-    const imagemUrl = document.getElementById('produto-imagem')?.value.trim();
-    const descricao = document.getElementById('produto-descricao')?.value.trim();
-
-    if (!nome || !categoria || !preco || estoque === undefined) {
-      Toast.erro('Preencha nome, categoria, preço e estoque.');
-      return;
-    }
-    if (parseFloat(preco) <= 0) { Toast.erro('Preço inválido.'); return; }
-    if (parseInt(estoque) < 0)  { Toast.erro('Estoque inválido.'); return; }
-
-    const btn = document.getElementById('btn-salvar-produto');
-    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
-
-    const dados = {
-      nome, categoria, preco: parseFloat(preco), estoque: parseInt(estoque), descricao
+  ativarSecao(secao) {
+    this.secaoAtiva = secao;
+    const secoes = ['produtos','usuarios','pedidos','cupons'];
+    secoes.forEach(s => {
+      const el = document.getElementById(`secao-${s}`);
+      const nav = document.getElementById(`nav-${s}`);
+      if (el)  el.style.display  = s === secao ? 'block' : 'none';
+      if (nav) nav.classList.toggle('ativo', s === secao);
+    });
+    const titulos = {
+      produtos: '📦 Gerenciar Produtos',
+      usuarios: '👥 Gerenciar Usuários',
+      pedidos:  '🛒 Gerenciar Pedidos',
+      cupons:   '🎟️ Cupons de Desconto'
     };
-    if (imagemUrl) dados.imagem_url = imagemUrl;
+    const tituloEl = document.getElementById('admin-page-title');
+    if (tituloEl) tituloEl.textContent = titulos[secao] || 'Dashboard';
+  },
 
+  async carregarStats() {
     try {
-      if (id) {
-        await API.atualizarProduto(id, dados);
-        Toast.sucesso('Produto atualizado!');
-        this.cancelarEdicao();
-      } else {
-        await API.criarProduto(dados);
-        Toast.sucesso('Produto criado!');
-        document.getElementById('form-produto')?.reset();
+      const stats = await API.statsAdmin();
+      const el = id => document.getElementById(id);
+      if (el('stat-total'))      el('stat-total').textContent     = stats.total_produtos;
+      if (el('stat-usuarios'))   el('stat-usuarios').textContent  = stats.total_usuarios;
+      if (el('stat-vendas'))     el('stat-vendas').textContent    = Utils.formatarMoeda(stats.total_vendas);
+      if (el('stat-categorias')) {
+        const cats = new Set(this.produtos.map(p => p.categoria)).size;
+        el('stat-categorias').textContent = cats;
       }
-      await this.carregarProdutos();
-      await this.carregarStats();
+
+      const maisVendidosEl = document.getElementById('mais-vendidos-lista');
+      if (maisVendidosEl && stats.mais_vendidos?.length > 0) {
+        maisVendidosEl.innerHTML = stats.mais_vendidos.map((p, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+            border-bottom:1px solid var(--cinza-claro);">
+            <span style="font-weight:800;color:var(--azul-claro);
+              min-width:20px;">${i + 1}.</span>
+            <img src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/36?text=🎣'}"
+              style="width:36px;height:36px;border-radius:6px;object-fit:cover;"/>
+            <span style="flex:1;font-size:0.85rem;">${p.nome}</span>
+            <span style="font-size:0.8rem;color:#888;">${p.vendas} vendas</span>
+          </div>
+        `).join('');
+      }
     } catch (err) {
-      Toast.erro(err.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar Produto'; }
+      console.error('Erro ao carregar stats:', err);
     }
   },
 
-  async salvarCupom(e) {
-    e.preventDefault();
-    const codigo         = document.getElementById('cupom-codigo')?.value.trim();
-    const desconto_percent = document.getElementById('cupom-desconto-percent')?.value;
-    const desconto_fixo  = document.getElementById('cupom-desconto-fixo')?.value;
-    const valor_minimo   = document.getElementById('cupom-valor-minimo')?.value;
-    const validade       = document.getElementById('cupom-validade')?.value;
-    const limite_uso     = document.getElementById('cupom-limite-uso')?.value;
-
-    if (!codigo) { Toast.erro('Código do cupom é obrigatório.'); return; }
-    if (!desconto_percent && !desconto_fixo) {
-      Toast.erro('Informe desconto em % ou valor fixo.'); return;
+  async carregarProdutos() {
+    try {
+      this.produtos = await API.listarProdutos();
+      this.renderizarTabelaProdutos();
+    } catch (err) {
+      Toast.erro(err.message);
     }
-    if (desconto_percent && (parseFloat(desconto_percent) <= 0 || parseFloat(desconto_percent) > 100)) {
-      Toast.erro('Desconto % inválido.'); return;
+  },
+
+  async carregarUsuarios() {
+    try {
+      this.usuarios = await API.listUsers();
+      this.renderizarTabelaUsuarios();
+    } catch (err) {
+      Toast.erro(err.message);
     }
-    if (desconto_fixo && parseFloat(desconto_fixo) <= 0) {
-      Toast.erro('Desconto fixo inválido.'); return;
+  },
+
+  async carregarPedidos() {
+    try {
+      this.pedidos = await API.todosPedidos();
+      this.renderizarTabelaPedidos();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  async carregarCupons() {
+    try {
+      this.cupons = await API.listarCupons();
+      this.renderizarTabelaCupons();
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
+
+  renderizarTabelaProdutos() {
+    const tbody = document.getElementById('tabela-body-produtos');
+    if (!tbody) return;
+
+    if (this.produtos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum produto cadastrado.</td></tr>`;
+      return;
     }
 
-    const btn = document.getElementById('btn-salvar-cupom');
-    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+    tbody.innerHTML = this.produtos.map(p => `
+      <tr>
+        <td>
+          <img class="tabela-img"
+            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/44?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://placehold.co/44?text=🎣'"/>
+        </td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td>${Utils.formatarCategoria(p.categoria)}</td>
+        <td style="color:#1e8449;font-weight:700;">${Utils.formatarMoeda(p.preco)}</td>
+        <td>
+          <span style="font-weight:700;color:${p.estoque === 0 ? '#e74c3c' : p.estoque <= 3 ? '#f39c12' : '#27ae60'};">
+            ${p.estoque === 0 ? '⚠️ Esgotado' : p.estoque + ' un.'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-acao btn-editar"
+            onclick="PaginaDashboard.editarProduto('${p.id}')">✏️ Editar</button>
+          <button class="btn-acao btn-excluir"
+            onclick="PaginaDashboard.abrirModalExcluir('${p.id}',
+            '${p.nome.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  },
 
-    const dados = {
-      codigo,
-      desconto_percent: desconto_percent ? parseFloat(desconto_percent) : null,
-      desconto_fixo:    desconto_fixo ? parseFloat(desconto_fixo) : null,
-      valor_minimo:     valor_minimo ? parseFloat(valor_minimo) : 0,
-      validade:         validade || null,
-      limite_uso:       limite_uso ? parseInt(limite_uso) : null
-    };
+  renderizarTabelaUsuarios() {
+    const tbody = document.getElementById('tabela-body-usuarios');
+    if (!tbody) return;
+    const loggedUser = Utils.getLoggedUser();
+
+    if (this.usuarios.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum usuário cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600;">${u.nome || '—'}</div>
+          <div style="font-size:0.75rem;color:#888;">${u.email}</div>
+        </td>
+        <td>${u.telefone || '—'}</td>
+        <td>
+          <select class="select-status-pedido" id="select-role-${u.id}"
+            onchange="PaginaDashboard.habilitarSalvarRole('${u.id}')"
+            ${loggedUser?.id === u.id ? 'disabled' : ''}>
+            <option value="user"  ${u.role === 'user'  ? 'selected' : ''}>Usuário</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn-salvar-role" id="btn-role-${u.id}"
+            onclick="PaginaDashboard.salvarRole('${u.id}')" disabled
+            ${loggedUser?.id === u.id ? 'title="Não pode alterar seu próprio papel"' : ''}>
+            Salvar
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  renderizarTabelaPedidos() {
+    const tbody = document.getElementById('tabela-body-pedidos');
+    if (!tbody) return;
+
+    if (this.pedidos.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum pedido ainda.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.pedidos.map(p => {
+      const totalItens = (p.pedido_itens || [])
+        .reduce((a, i) => a + i.quantidade, 0);
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.82rem;">
+            #${p.id.slice(0,8).toUpperCase()}
+          </td>
+          <td>
+            <div style="font-weight:600;">${p.usuarios?.nome || '—'}</div>
+            <div style="font-size:0.75rem;color:#888;">${p.usuarios?.email || ''}</div>
+          </td>
+          <td style="font-weight:700;color:#1e8449;">${Utils.formatarMoeda(p.total)}</td>
+          <td>${Utils.formatarData(p.created_at)}</td>
+          <td>
+            <select class="select-status-pedido" id="select-status-${p.id}"
+              onchange="PaginaDashboard.salvarStatusPedido('${p.id}')">
+              ${['pendente','pago','em_preparo','enviado','entregue','cancelado'].map(s => `
+                <option value="${s}" ${p.status === s ? 'selected' : ''}>
+                  ${Utils.labelStatus(s)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderizarTabelaCupons() {
+    const tbody = document.getElementById('tabela-body-cupons');
+    if (!tbody) return;
+
+    if (this.cupons.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"
+        style="text-align:center;padding:32px;color:#888;">
+        Nenhum cupom cadastrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = this.cupons.map(c => `
+      <tr>
+        <td style="font-weight:700;font-family:monospace;">${c.codigo}</td>
+        <td style="color:#27ae60;font-weight:700;">
+          ${c.desconto_percent
+            ? `${c.desconto_percent}%`
+            : Utils.formatarMoeda(c.desconto_fixo)}
+        </td>
+        <td>${c.valor_minimo > 0
+          ? Utils.formatarMoeda(c.valor_minimo) : 'Sem mínimo'}</td>
+        <td>${c.validade
+          ? new Date(c.validade).toLocaleDateString('pt-BR') : 'Sem vencimento'}</td>
+        <td>${c.usos}${c.limite_uso ? ` / ${c.limite_uso}` : ''}</td>
+      </tr>
+    `).join('');
+  },
+
+  habilitarSalvarRole(userId) {
+    const btn = document.getElementById(`btn-role-${userId}`);
+    if (btn) btn.disabled = false;
+  },
+
+  async salvarRole(userId) {
+    const select = document.getElementById(`select-role-${userId}`);
+    const btn    = document.getElementById(`btn-role-${userId}`);
+    if (!select) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
 
     try {
-      await API.criarCupom(dados);
-      Toast.sucesso('Cupom criado!');
-      document.getElementById('form-cupom')?.reset();
-      await this.carregarCupons();
+      await API.updateRole(userId, select.value);
+      Toast.sucesso('Papel atualizado!');
+      await this.carregarUsuarios();
     } catch (err) {
       Toast.erro(err.message);
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '💾 Criar Cupom'; }
+      btn.disabled = false;
+      btn.textContent = 'Salvar';
+    }
+  },
+
+  async salvarStatusPedido(pedidoId) {
+    const select = document.getElementById(`select-status-${pedidoId}`);
+    if (!select) return;
+
+    try {
+      await API.atualizarStatus(pedidoId, select.value);
+      Toast.sucesso('Status do pedido atualizado!');
+    } catch (err) {
+      Toast.erro(err.message);
+      await this.carregarPedidos();
     }
   },
 
@@ -2063,7 +5816,7 @@ const Router = {
     if (pagina === '/' || pagina === 'index') { // 'index' para compatibilidade se alguém digitar index.html
       const user = Utils.getLoggedUser();
       if (user && user.role === 'admin') {
-        window.location.href = '/dashboard'; // Alterado
+        window.location.href = '/dashboard';
         return;
       }
       Carrinho.init();
@@ -2075,20 +5828,20 @@ const Router = {
       MenuMobile.init();
       PaginaDetalhe.init();
 
-    } else if (pagina === 'login') { // Alterado
+    } else if (pagina === 'login') {
       PaginaLogin.init();
 
-    } else if (pagina === 'cadastro') { // Alterado
+    } else if (pagina === 'cadastro') {
       PaginaCadastro.init();
 
-    } else if (pagina === 'dashboard') { // Alterado
+    } else if (pagina === 'dashboard') {
       PaginaDashboard.init();
 
-    } else if (pagina === 'pedidos') { // Alterado
+    } else if (pagina === 'pedidos') {
       MenuMobile.init();
       PaginaMeusPedidos.init();
 
-    } else if (pagina === 'favoritos') { // Alterado
+    } else if (pagina === 'favoritos') {
       MenuMobile.init();
       PaginaFavoritos.init();
 
@@ -2104,3 +5857,4 @@ const Router = {
 document.addEventListener('DOMContentLoaded', () => {
   Router.init();
 });
+
