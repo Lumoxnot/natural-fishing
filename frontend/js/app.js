@@ -797,77 +797,66 @@ const PaginaLoja = {
   },
 
   renderizarProdutos(lista) {
-  const grid     = document.getElementById('grid-produtos');
-  const contagem = document.getElementById('contagem-produtos');
-  if (!grid) return;
+    const grid    = document.getElementById('grid-produtos');
+    const contagem = document.getElementById('contagem-produtos');
+    if (!grid) return;
 
-  if (contagem) {
-    contagem.textContent = lista.length > 0
-      ? `${lista.length} produto${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`
-      : '';
-  }
+    if (contagem) {
+      contagem.textContent = lista.length > 0
+        ? `${lista.length} produto${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`
+        : '';
+    }
 
-  if (lista.length === 0) {
-    this.renderizarVazio('Nenhum produto encontrado.');
-    return;
-  }
+    if (lista.length === 0) {
+      this.renderizarVazio('Nenhum produto encontrado.');
+      return;
+    }
 
-  grid.innerHTML = lista.map(p => {
-    const esgotado     = p.estoque === 0;
-    const estoqueBaixo = p.estoque > 0 && p.estoque <= 3;
-    const favoritado   = this.favoritos.includes(p.id);
+    grid.innerHTML = lista.map(p => {
+      const esgotado = p.estoque === 0;
+      const estoqueBaixo = p.estoque > 0 && p.estoque <= 3;
+      const favoritado = this.favoritos.includes(p.id);
 
-    return `
-      <article class="card-produto ${esgotado ? 'esgotado' : ''}"
-        role="button" tabindex="0"
-        onclick="window.location.href='produto.html?id=${p.id}'"
-        onkeypress="if(event.key==='Enter')window.location.href='produto.html?id=${p.id}'"
-        style="cursor:pointer;">
-        <div class="card-img-wrapper">
-          <img class="card-produto-img"
-            src="${(p.imagens && p.imagens[0]) || p.imagem_url || 'https://placehold.co/400x300?text=🎣'}"
-            alt="${p.nome}" loading="lazy"
-            onerror="this.src='https://placehold.co/400x300?text=🎣'"/>
-          <span class="badge-categoria">${Utils.formatarCategoria(p.categoria)}</span>
-          ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
-          ${estoqueBaixo ? `<span class="badge-estoque-baixo">Últimas ${p.estoque}!</span>` : ''}
-          ${Utils.getToken() ? `
-            <button class="btn-favorito ${favoritado ? 'ativo' : ''}"
-              onclick="event.stopPropagation();PaginaLoja.toggleFavorito(event,'${p.id}')"
-              title="${favoritado ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
-              ${favoritado ? '❤️' : '🤍'}
-            </button>` : ''}
-        </div>
-        <div class="card-body">
-          <h3 class="card-nome">${p.nome}</h3>
-          <p class="card-descricao">${p.descricao || 'Produto de qualidade para pesca.'}</p>
-          ${p.cores && p.cores.length > 0 ? `
-            <div class="card-cores">
-              ${p.cores.slice(0,5).map(c => `
-                <span class="card-cor-bolinha"
-                  style="background:${c.hex}"
-                  title="${c.nome}"></span>
-              `).join('')}
-              ${p.cores.length > 5 ? `<span style="font-size:0.72rem;color:#888;">+${p.cores.length - 5}</span>` : ''}
-            </div>
-          ` : ''}
-          ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
-          <div class="card-preco">${Utils.formatarMoeda(p.preco)}</div>
-          ${!esgotado ? `<small style="color:#888;font-size:0.72rem;">
-            ${p.estoque} em estoque
-          </small>` : ''}
-        </div>
-        <div class="card-footer">
-          <button class="btn-comprar"
-            onclick="event.stopPropagation();${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}"
-            ${esgotado ? 'disabled' : ''}>
-            ${esgotado ? 'Esgotado' : '🛒 Adicionar ao Carrinho'}
-          </button>
-        </div>
-      </article>
-    `;
-  }).join('');
-},
+      return `
+        <article class="card-produto ${esgotado ? 'esgotado' : ''}" tabindex="0">
+          <div class="card-img-wrapper">
+            <img class="card-produto-img"
+              src="${p.imagem_url || 'https://via.placeholder.com/400x300?text=🎣'}"
+              alt="${p.nome}" loading="lazy"
+              onerror="this.src='https://via.placeholder.com/400x300?text=🎣'"/>
+            <span class="badge-categoria">${Utils.formatarCategoria(p.categoria)}</span>
+            ${esgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
+            ${estoqueBaixo ? `<span class="badge-estoque-baixo">Últimas ${p.estoque}!</span>` : ''}
+            ${Utils.getToken() ? `
+              <button class="btn-favorito ${favoritado ? 'ativo' : ''}"
+                onclick="PaginaLoja.toggleFavorito(event, '${p.id}')"
+                title="${favoritado ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+                ${favoritado ? '❤️' : '🤍'}
+              </button>` : ''}
+          </div>
+          <div class="card-body">
+            <h3 class="card-nome">${p.nome}</h3>
+            <p class="card-descricao">${p.descricao || 'Produto de qualidade para pesca.'}</p>
+            ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
+            <div class="card-preco">${Utils.formatarMoeda(p.preco)}</div>
+            ${!esgotado ? `<small style="color:#888;font-size:0.72rem;">
+              ${p.estoque} em estoque
+            </small>` : ''}
+          </div>
+          <div class="card-footer">
+            <button class="btn-detalhes"
+              onclick="window.location.href='produto.html?id=${p.id}'">
+              Detalhes
+            </button>
+            <button class="btn-comprar" ${esgotado ? 'disabled' : ''}
+              onclick="${esgotado ? '' : `Carrinho.adicionar(${JSON.stringify(p).replace(/"/g,'&quot;')})`}">
+              ${esgotado ? 'Esgotado' : '🛒 Comprar'}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  },
 
   async toggleFavorito(e, produtoId) {
     e.stopPropagation();
@@ -951,340 +940,187 @@ const PaginaLoja = {
 // ============================================================
 const PaginaDetalhe = {
   produto: null,
-  produtosRelacionados: [],
-  favoritos: [], // Adicionado para gerenciar favoritos nos cards relacionados
 
   async init() {
     const id = Utils.getParam('id');
-    if (!id) { window.location.href = '/'; return; }
+    if (!id) { window.location.href = '/'; return; } // Alterado para URL limpa
     NavAuth.render();
     Loading.mostrar('Carregando produto...');
     try {
       this.produto = await API.obterProduto(id);
-      // Carrega favoritos do usuário logado
-      if (Utils.getToken()) {
-        const favs = await API.meurosFavoritos();
-        this.favoritos = favs.map(f => f.id);
-      }
-      // Carrega produtos relacionados
-      await this.carregarProdutosRelacionados(id, this.produto.categoria);
       this.renderizar();
     } catch (err) {
       Toast.erro(err.message);
+      // Redireciona para a loja se o produto não for encontrado
       setTimeout(() => window.location.href = '/', 1500);
     } finally {
       Loading.ocultar();
     }
   },
 
-  async carregarProdutosRelacionados(produtoId, categoria) {
-    try {
-      // Busca produtos da mesma categoria, excluindo o produto atual
-      const filtros = { categoria: categoria };
-      const todosProdutos = await API.listarProdutos(filtros);
-      this.produtosRelacionados = todosProdutos.filter(p => p.id !== produtoId).slice(0, 4); // Limita a 4 produtos
-    } catch (err) {
-      console.error('Erro ao carregar produtos relacionados:', err);
-      this.produtosRelacionados = [];
+  renderizar() {
+    const p = this.produto;
+    const container = document.getElementById('detalhe-container');
+    if (!container || !p) return;
+
+    document.title = `${p.nome} — Natural Fishing`;
+    const esgotado = p.estoque === 0;
+    const user = Utils.getLoggedUser(); // Para verificar se o usuário está logado para favoritar
+
+    container.innerHTML = `
+      <a href="/" class="btn-voltar">← Voltar para produtos</a>
+      <div class="detalhe-card">
+        <div class="detalhe-img-wrapper">
+          <img class="detalhe-img"
+            src="${p.imagem_url || 'https://via.placeholder.com/600x420?text=🎣'}"
+            alt="${p.nome}"
+            onerror="this.src='https://via.placeholder.com/600x420?text=🎣'"/>
+        </div>
+        <div class="detalhe-info">
+          <span class="detalhe-categoria">${Utils.formatarCategoria(p.categoria)}</span>
+          <h1 class="detalhe-nome">${p.nome}</h1>
+          ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
+          <div class="detalhe-preco">${Utils.formatarMoeda(p.preco)}</div>
+          <p class="detalhe-descricao">
+            ${p.descricao || 'Produto de alta qualidade para pesca, ideal para suas aventuras.'}
+          </p>
+          ${esgotado
+            ? `<div class="badge-esgotado" style="position:static;display:inline-block;margin-bottom:12px;">
+                Produto Esgotado
+              </div>`
+            : `<p style="font-size:0.8rem;color:#888;margin-bottom:12px;">
+                📦 ${p.estoque} unidade${p.estoque !== 1 ? 's' : ''} em estoque
+              </p>`
+          }
+          <div class="detalhe-acoes">
+            <button class="btn-comprar"
+              id="btn-adicionar-detalhe"
+              ${esgotado ? 'disabled' : ''}>
+              ${esgotado ? 'Produto Esgotado' : '🛒 Adicionar ao Carrinho'}
+            </button>
+            ${user ? `
+              <button class="btn-adicionar-favoritos" id="btn-favoritar-detalhe">
+                ❤️ Adicionar aos Favoritos
+              </button>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="secao-info-extra">
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">⚙️</span> Especificações Técnicas</h3>
+          <ul>
+            <li><strong>Material:</strong> ${p.especificacoes?.material || 'Não informado'}</li>
+            <li><strong>Peso:</strong> ${p.especificacoes?.peso || 'Não informado'}</li>
+            <li><strong>Dimensões:</strong> ${p.especificacoes?.dimensoes || 'Não informado'}</li>
+            <li><strong>Cor:</strong> ${p.especificacoes?.cor || 'Não informado'}</li>
+            <li><strong>Marca:</strong> ${p.especificacoes?.marca || 'Não informado'}</li>
+          </ul>
+        </div>
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">🚚</span> Frete e Entrega</h3>
+          <ul>
+            <li><strong>Prazo:</strong> 3-7 dias úteis (pode variar por região)</li>
+            <li><strong>Custo:</strong> Frete grátis para compras acima de R$ 200,00</li>
+            <li><strong>Regiões:</strong> Entregamos em todo o Brasil</li>
+            <li><strong>Rastreamento:</strong> Código enviado por e-mail</li>
+          </ul>
+          <div class="selos-confianca">
+            <img src="https://via.placeholder.com/80x32?text=Frete" alt="Selo Frete Grátis"/>
+            <img src="https://via.placeholder.com/80x32?text=Rápido" alt="Selo Entrega Rápida"/>
+          </div>
+        </div>
+        <div class="info-bloco">
+          <h3><span style="font-size:1.2em;">🔒</span> Compra Segura</h3>
+          <ul>
+            <li><strong>Pagamento:</strong> Cartão de crédito, Pix, Boleto</li>
+            <li><strong>Privacidade:</strong> Seus dados 100% protegidos</li>
+            <li><strong>Devolução:</strong> 7 dias para troca ou devolução</li>
+            <li><strong>Garantia:</strong> Contra defeitos de fabricação</li>
+          </ul>
+          <div class="selos-confianca">
+            <img src="https://via.placeholder.com/80x32?text=SSL" alt="Selo SSL Seguro"/>
+            <img src="https://via.placeholder.com/80x32?text=ReclameAqui" alt="Selo Reclame Aqui"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="secao-avaliacoes">
+        <h3>⭐ Avaliações dos clientes</h3>
+        ${Utils.getToken() ? `
+          <div class="form-avaliacao">
+            <p style="font-size:0.85rem;font-weight:700;color:var(--azul-escuro);margin-bottom:8px;">
+              Deixe sua avaliação:
+            </p>
+            <div class="seletor-estrelas" id="seletor-estrelas">
+              <input type="radio" id="s5" name="nota" value="5"/>
+              <label for="s5" title="5 estrelas">★</label>
+              <input type="radio" id="s4" name="nota" value="4"/>
+              <label for="s4" title="4 estrelas">★</label>
+              <input type="radio" id="s3" name="nota" value="3"/>
+              <label for="s3" title="3 estrelas">★</label>
+              <input type="radio" id="s2" name="nota" value="2"/>
+              <label for="s2" title="2 estrelas">★</label>
+              <input type="radio" id="s1" name="nota" value="1"/>
+              <label for="s1" title="1 estrela">★</label>
+            </div>
+            <textarea id="comentario-avaliacao"
+              placeholder="Conte sua experiência com este produto (opcional)..."
+              rows="3"
+              style="width:100%;padding:8px 12px;border:1px solid var(--cinza-medio);
+                    border-radius:var(--radius-sm);font-size:0.85rem;resize:vertical;">
+            </textarea>
+            <button class="btn-primario" id="btn-enviar-avaliacao"
+              style="max-width:180px;margin-top:10px;padding:10px;">
+              Enviar Avaliação
+            </button>
+          </div>
+        ` : `
+          <p style="font-size:0.85rem;color:#888;margin-bottom:16px;">
+            <a href="/login" style="color:var(--azul-claro);">Faça login</a>
+            para avaliar este produto.
+          </p>
+        `}
+        <div id="lista-avaliacoes">Carregando avaliações...</div>
+      </div>
+    `;
+
+    // Botão adicionar ao carrinho
+    if (!esgotado) {
+      document.getElementById('btn-adicionar-detalhe')
+        ?.addEventListener('click', () => Carrinho.adicionar(p));
     }
+
+    // Botão favoritar
+    if (user) {
+      document.getElementById('btn-favoritar-detalhe')
+        ?.addEventListener('click', (e) => PaginaDetalhe.toggleFavorito(e, p.id));
+    }
+
+    // Botão enviar avaliação
+    document.getElementById('btn-enviar-avaliacao')
+      ?.addEventListener('click', () => this.enviarAvaliacao());
+
+    // Carrega avaliações
+    this.carregarAvaliacoes();
   },
 
-  renderizar() {
-  const p = this.produto;
-  const container = document.getElementById('detalhe-container');
-  if (!container || !p) return;
-
-  document.title = `${p.nome} — Natural Fishing`;
-  const esgotado = p.estoque === 0;
-  const user     = Utils.getLoggedUser();
-
-  // Imagens (usa campo imagens[] ou fallback para imagem_url)
-  const imagens = (p.imagens && p.imagens.length > 0)
-    ? p.imagens
-    : (p.imagem_url ? [p.imagem_url] : []);
-  const imagemPrincipal = imagens[0] || 'https://placehold.co/600x600?text=🎣';
-
-  // Galeria de imagens
-  const galeriaHtml = imagens.length > 1 ? `
-    <div class="galeria-miniaturas">
-      ${imagens.map((img, idx) => `
-        <button class="miniatura ${idx === 0 ? 'ativa' : ''}"
-          onclick="PaginaDetalhe.trocarImagem('${img}', this)"
-          type="button">
-          <img src="${img}" alt="Imagem ${idx + 1}"
-            onerror="this.src='https://placehold.co/80x80?text=🎣'"/>
-        </button>
-      `).join('')}
-    </div>
-  ` : '';
-
-  // Cores
-  const coresHtml = (p.cores && p.cores.length > 0) ? `
-    <div class="detalhe-cores">
-      <p class="detalhe-cores-label">Cores disponíveis:</p>
-      <div class="detalhe-cores-lista" id="cores-selecionaveis">
-        ${p.cores.map((cor, idx) => `
-          <button class="cor-opcao ${idx === 0 ? 'selecionada' : ''}"
-            style="--cor-bg: ${cor.hex}"
-            onclick="PaginaDetalhe.selecionarCor(this, '${cor.nome}')"
-            title="${cor.nome}" type="button">
-            <span class="cor-bolinha" style="background:${cor.hex}"></span>
-            <span class="cor-label">${cor.nome}</span>
-          </button>
-        `).join('')}
-      </div>
-    </div>
-  ` : '';
-
-  // Especificações técnicas
-  const specs = p.especificacoes || {};
-  const specsItens = [
-    { label: 'Material',   valor: specs.material },
-    { label: 'Peso',       valor: specs.peso },
-    { label: 'Dimensões',  valor: specs.dimensoes },
-    { label: 'Marca',      valor: specs.marca },
-    { label: 'Modelo',     valor: specs.modelo },
-    { label: 'Garantia',   valor: specs.garantia },
-  ].filter(s => s.valor);
-
-  const especificacoesHtml = specsItens.length > 0 ? `
-    <div class="info-bloco">
-      <h3>⚙️ Especificações Técnicas</h3>
-      <table class="specs-tabela">
-        ${specsItens.map(s => `
-          <tr>
-            <td class="spec-chave">${s.label}</td>
-            <td class="spec-valor">${s.valor}</td>
-          </tr>
-        `).join('')}
-      </table>
-    </div>
-  ` : '';
-
-  // Frete e entrega
-  const frete = p.info_frete || {};
-  const freteItens = [
-    { label: 'Prazo',        valor: frete.prazo },
-    { label: 'Custo',        valor: frete.custo },
-    { label: 'Regiões',      valor: frete.regioes },
-    { label: 'Rastreamento', valor: frete.rastreamento },
-  ].filter(f => f.valor);
-
-  const freteHtml = (freteItens.length > 0 || (frete.selos && frete.selos.length > 0)) ? `
-    <div class="info-bloco">
-      <h3>🚚 Frete e Entrega</h3>
-      <table class="specs-tabela">
-        ${freteItens.map(f => `
-          <tr>
-            <td class="spec-chave">${f.label}</td>
-            <td class="spec-valor">${f.valor}</td>
-          </tr>
-        `).join('')}
-      </table>
-      ${frete.selos && frete.selos.length > 0 ? `
-        <div class="selos-lista">
-          ${frete.selos.map(s => `
-            <span class="selo-badge selo-verde">✔ ${s}</span>
-          `).join('')}
-        </div>
-      ` : ''}
-    </div>
-  ` : '';
-
-  // Compra segura
-  const seg = p.info_seguranca || {};
-  const segItens = [
-    { label: 'Pagamento',   valor: seg.pagamento },
-    { label: 'Devolução',   valor: seg.devolucao },
-    { label: 'Privacidade', valor: seg.privacidade },
-  ].filter(s => s.valor);
-
-  const segurancaHtml = (segItens.length > 0 || (seg.selos && seg.selos.length > 0)) ? `
-    <div class="info-bloco">
-      <h3>🔒 Compra Segura</h3>
-      <table class="specs-tabela">
-        ${segItens.map(s => `
-          <tr>
-            <td class="spec-chave">${s.label}</td>
-            <td class="spec-valor">${s.valor}</td>
-          </tr>
-        `).join('')}
-      </table>
-      ${seg.selos && seg.selos.length > 0 ? `
-        <div class="selos-lista">
-          ${seg.selos.map(s => `
-            <span class="selo-badge selo-azul">🔒 ${s}</span>
-          `).join('')}
-        </div>
-      ` : ''}
-    </div>
-  ` : '';
-
-  // Bloco de informações extras (só exibe se houver conteúdo)
-  const infoExtraHtml = (especificacoesHtml || freteHtml || segurancaHtml) ? `
-    <section class="secao-info-extra">
-      ${especificacoesHtml}
-      ${freteHtml}
-      ${segurancaHtml}
-    </section>
-  ` : '';
-
-  // Produtos relacionados
-  const produtosRelacionadosHtml = this.produtosRelacionados.length > 0 ? `
-    <section class="secao-produtos-relacionados">
-      <h2>Outros produtos que você pode gostar</h2>
-      <div class="grid-produtos">
-        ${this.produtosRelacionados.map(prod => {
-          const prodEsgotado = prod.estoque === 0;
-          const imgProd = (prod.imagens && prod.imagens[0]) || prod.imagem_url || 'https://placehold.co/400x300?text=🎣';
-          return `
-            <article class="card-produto ${prodEsgotado ? 'esgotado' : ''}"
-              role="button" tabindex="0"
-              onclick="window.location.href='produto.html?id=${prod.id}'"
-              style="cursor:pointer;">
-              <div class="card-img-wrapper">
-                <img class="card-produto-img"
-                  src="${imgProd}"
-                  alt="${prod.nome}" loading="lazy"
-                  onerror="this.src='https://placehold.co/400x300?text=🎣'"/>
-                <span class="badge-categoria">${Utils.formatarCategoria(prod.categoria)}</span>
-                ${prodEsgotado ? '<span class="badge-esgotado">Esgotado</span>' : ''}
-              </div>
-              <div class="card-body">
-                <h3 class="card-nome">${prod.nome}</h3>
-                ${Utils.renderEstrelas(prod.media_avaliacao, prod.total_avaliacoes)}
-                <div class="card-preco">${Utils.formatarMoeda(prod.preco)}</div>
-              </div>
-              <div class="card-footer">
-                <button class="btn-comprar"
-                  onclick="event.stopPropagation();${prodEsgotado ? '' : `Carrinho.adicionar(${JSON.stringify(prod).replace(/"/g,'&quot;')})`}"
-                  ${prodEsgotado ? 'disabled' : ''}>
-                  ${prodEsgotado ? 'Esgotado' : '🛒 Comprar'}
-                </button>
-              </div>
-            </article>
-          `;
-        }).join('')}
-      </div>
-    </section>
-  ` : '';
-
-  container.innerHTML = `
-    <a href="/" class="btn-voltar">← Voltar para produtos</a>
-    <div class="detalhe-card">
-      <div class="detalhe-esquerda">
-        <div class="detalhe-img-wrapper">
-          <img class="detalhe-img" id="detalhe-img-principal"
-            src="${imagemPrincipal}"
-            alt="${p.nome}"
-            onerror="this.src='https://placehold.co/600x600?text=🎣'"/>
-        </div>
-        ${galeriaHtml}
-      </div>
-      <div class="detalhe-info">
-        <span class="detalhe-categoria">${Utils.formatarCategoria(p.categoria)}</span>
-        <h1 class="detalhe-nome">${p.nome}</h1>
-        ${Utils.renderEstrelas(p.media_avaliacao, p.total_avaliacoes)}
-        <div class="detalhe-preco">${Utils.formatarMoeda(p.preco)}</div>
-        <p class="detalhe-descricao">
-          ${p.descricao || 'Produto de alta qualidade para pesca, ideal para suas aventuras.'}
-        </p>
-        ${coresHtml}
-        ${esgotado
-          ? `<div class="badge-esgotado"
-              style="position:static;display:inline-block;margin-bottom:12px;">
-               Produto Esgotado
-             </div>`
-          : `<p style="font-size:0.82rem;color:#888;margin-bottom:8px;">
-               📦 ${p.estoque} unidade${p.estoque !== 1 ? 's' : ''} em estoque
-             </p>`
-        }
-        <div class="detalhe-acoes">
-          <button class="btn-comprar"
-            id="btn-adicionar-detalhe"
-            ${esgotado ? 'disabled' : ''}>
-            ${esgotado ? 'Produto Esgotado' : '🛒 Adicionar ao Carrinho'}
-          </button>
-          ${user ? `
-            <button class="btn-adicionar-favoritos" id="btn-favoritar-detalhe">
-              ${this.favoritos.includes(p.id) ? '❤️ Remover dos Favoritos' : '🤍 Adicionar aos Favoritos'}
-            </button>` : ''}
-        </div>
-      </div>
-    </div>
-
-    ${infoExtraHtml}
-
-    <div class="secao-avaliacoes">
-      <h3>⭐ Avaliações dos clientes</h3>
-      ${Utils.getToken() ? `
-        <div class="form-avaliacao">
-          <p style="font-size:0.85rem;font-weight:700;color:var(--azul-escuro);margin-bottom:8px;">
-            Deixe sua avaliação:
-          </p>
-          <div class="seletor-estrelas" id="seletor-estrelas">
-            <input type="radio" id="s5" name="nota" value="5"/>
-            <label for="s5" title="5 estrelas">★</label>
-            <input type="radio" id="s4" name="nota" value="4"/>
-            <label for="s4" title="4 estrelas">★</label>
-            <input type="radio" id="s3" name="nota" value="3"/>
-            <label for="s3" title="3 estrelas">★</label>
-            <input type="radio" id="s2" name="nota" value="2"/>
-            <label for="s2" title="2 estrelas">★</label>
-            <input type="radio" id="s1" name="nota" value="1"/>
-            <label for="s1" title="1 estrela">★</label>
-          </div>
-          <textarea id="comentario-avaliacao"
-            placeholder="Conte sua experiência com este produto (opcional)..."
-            rows="3"
-            style="width:100%;padding:8px 12px;border:1px solid var(--cinza-medio);
-                   border-radius:var(--radius-sm);font-size:0.85rem;resize:vertical;">
-          </textarea>
-          <button class="btn-primario" id="btn-enviar-avaliacao"
-            style="max-width:180px;margin-top:10px;padding:10px;">
-            Enviar Avaliação
-          </button>
-        </div>
-      ` : `
-        <p style="font-size:0.85rem;color:#888;margin-bottom:16px;">
-          <a href="/login" style="color:var(--azul-claro);">Faça login</a>
-          para avaliar este produto.
-        </p>
-      `}
-      <div id="lista-avaliacoes">Carregando avaliações...</div>
-    </div>
-
-    ${produtosRelacionadosHtml}
-  `;
-
-  // Eventos
-  if (!esgotado) {
-    document.getElementById('btn-adicionar-detalhe')
-      ?.addEventListener('click', () => Carrinho.adicionar(p));
-  }
-
-  if (user) {
-    document.getElementById('btn-favoritar-detalhe')
-      ?.addEventListener('click', (e) => PaginaDetalhe.toggleFavorito(e, p.id));
-  }
-
-  document.getElementById('btn-enviar-avaliacao')
-    ?.addEventListener('click', () => this.enviarAvaliacao());
-
-  this.carregarAvaliacoes();
-},
-
-trocarImagem(url, btnEl) {
-  const img = document.getElementById('detalhe-img-principal');
-  if (img) img.src = url;
-  document.querySelectorAll('.miniatura').forEach(btn => btn.classList.remove('ativa'));
-  btnEl?.classList.add('ativa');
-},
-
-selecionarCor(btnEl, nomeCor) {
-  document.querySelectorAll('.cor-opcao').forEach(btn => btn.classList.remove('selecionada'));
-  btnEl?.classList.add('selecionada');
-},
+  async toggleFavorito(e, produtoId) {
+    e.stopPropagation();
+    try {
+      const resp = await API.toggleFavorito(produtoId);
+      const btn = document.getElementById('btn-favoritar-detalhe');
+      if (resp.favoritado) {
+        Toast.sucesso('Adicionado aos favoritos! ❤️');
+        if (btn) btn.innerHTML = '❤️ Remover dos Favoritos';
+      } else {
+        Toast.info('Removido dos favoritos.');
+        if (btn) btn.innerHTML = '🤍 Adicionar aos Favoritos';
+      }
+    } catch (err) {
+      Toast.erro(err.message);
+    }
+  },
 
   async carregarAvaliacoes() {
     const container = document.getElementById('lista-avaliacoes');
@@ -1720,7 +1556,6 @@ const PaginaDashboard = {
   cupons: [],
   secaoAtiva: 'produtos',
   idParaExcluir: null,
-  coresTemporarias: [],
 
   async init() {
     const user = Utils.getLoggedUser();
@@ -1748,285 +1583,6 @@ const PaginaDashboard = {
 
     this.bindEventos();
     this.ativarSecao('produtos');
-  },
-
-  // ===== HELPERS: IMAGENS =====
-  previewImagem(numero) {
-    const input   = document.getElementById(`imagem-url-${numero}`);
-    const preview = document.getElementById(`preview-imagem-${numero}`);
-    if (!input || !preview) return;
-
-    const url = input.value.trim();
-    if (!url) {
-      preview.innerHTML = '<span>Sem imagem</span>';
-      return;
-    }
-
-    preview.innerHTML = `
-      <img src="${url}"
-        alt="Preview ${numero}"
-        onerror="this.parentElement.innerHTML='<span style=color:#e74c3c>URL inválida</span>'"
-      />`;
-  },
-
-  // ===== HELPERS: CORES =====
-  adicionarCor() {
-    const nomeInput = document.getElementById('cor-nome-input');
-    const hexInput  = document.getElementById('cor-hex-input');
-    if (!nomeInput || !hexInput) return;
-
-    const nome = nomeInput.value.trim();
-    const hex  = hexInput.value;
-
-    if (!nome) { Toast.erro('Digite o nome da cor.'); return; }
-
-    const corExistente = this.coresTemporarias.find(c =>
-      c.nome.toLowerCase() === nome.toLowerCase()
-    );
-    if (corExistente) { Toast.erro('Essa cor já foi adicionada.'); return; }
-
-    this.coresTemporarias.push({ nome, hex });
-    nomeInput.value = '';
-    hexInput.value = '#e74c3c';
-
-    this.renderizarCoresAdmin();
-    this.atualizarCoresHidden();
-  },
-
-  removerCor(index) {
-    this.coresTemporarias.splice(index, 1);
-    this.renderizarCoresAdmin();
-    this.atualizarCoresHidden();
-  },
-
-  renderizarCoresAdmin() {
-    const lista = document.getElementById('cores-admin-lista');
-    if (!lista) return;
-
-    if (this.coresTemporarias.length === 0) {
-      lista.innerHTML = '<span style="color:#aaa;font-size:0.82rem;">Nenhuma cor adicionada.</span>';
-      return;
-    }
-
-    lista.innerHTML = this.coresTemporarias.map((cor, idx) => `
-      <div class="cor-admin-tag">
-        <span class="cor-admin-bolinha" style="background:${cor.hex};"></span>
-        <span>${cor.nome}</span>
-        <button type="button" onclick="PaginaDashboard.removerCor(${idx})"
-          title="Remover">×</button>
-      </div>
-    `).join('');
-  },
-
-  atualizarCoresHidden() {
-    const hidden = document.getElementById('produto-cores');
-    if (hidden) hidden.value = JSON.stringify(this.coresTemporarias);
-  },
-
-  // ===== SALVAR PRODUTO =====
-  async salvarProduto(e) {
-    e.preventDefault();
-
-    const id        = document.getElementById('produto-id')?.value;
-    const nome      = document.getElementById('produto-nome')?.value.trim();
-    const categoria = document.getElementById('produto-categoria')?.value;
-    const preco     = document.getElementById('produto-preco')?.value;
-    const estoque   = document.getElementById('produto-estoque')?.value;
-    const descricao = document.getElementById('produto-descricao')?.value.trim();
-
-    // Validações básicas
-    if (!nome || !categoria || !preco || estoque === undefined) {
-      Toast.erro('Preencha nome, categoria, preço e estoque.');
-      return;
-    }
-    if (parseFloat(preco) <= 0) { Toast.erro('Preço inválido.'); return; }
-    if (parseInt(estoque) < 0)  { Toast.erro('Estoque inválido.'); return; }
-
-    // Coletar imagens
-    const imagem1 = document.getElementById('imagem-url-1')?.value.trim();
-    const imagem2 = document.getElementById('imagem-url-2')?.value.trim();
-    const imagem3 = document.getElementById('imagem-url-3')?.value.trim();
-    const imagens = [imagem1, imagem2, imagem3].filter(Boolean);
-
-    if (imagens.length === 0) {
-      Toast.erro('Adicione pelo menos uma imagem ao produto.');
-      return;
-    }
-
-    // Cores
-    const cores = this.coresTemporarias.length > 0 ? this.coresTemporarias : [];
-
-    // Especificações técnicas
-    const especificacoes = {
-      material:   document.getElementById('spec-material')?.value.trim() || null,
-      peso:       document.getElementById('spec-peso')?.value.trim() || null,
-      dimensoes:  document.getElementById('spec-dimensoes')?.value.trim() || null,
-      marca:      document.getElementById('spec-marca')?.value.trim() || null,
-      modelo:     document.getElementById('spec-modelo')?.value.trim() || null,
-      garantia:   document.getElementById('spec-garantia')?.value.trim() || null,
-    };
-
-    // Frete e entrega
-    const selosEntrega = [];
-    if (document.getElementById('selo-frete-gratis')?.checked) selosEntrega.push('Frete Grátis');
-    if (document.getElementById('selo-entrega-rapida')?.checked) selosEntrega.push('Entrega Rápida');
-    if (document.getElementById('selo-entrega-expressa')?.checked) selosEntrega.push('Entrega Expressa');
-
-    const info_frete = {
-      prazo:        document.getElementById('frete-prazo')?.value.trim() || null,
-      custo:        document.getElementById('frete-custo')?.value.trim() || null,
-      regioes:      document.getElementById('frete-regioes')?.value.trim() || null,
-      rastreamento: document.getElementById('frete-rastreamento')?.value.trim() || null,
-      selos:        selosEntrega,
-    };
-
-    // Compra segura
-    const selosSeguranca = [];
-    if (document.getElementById('selo-ssl')?.checked) selosSeguranca.push('SSL Seguro');
-    if (document.getElementById('selo-reclame-aqui')?.checked) selosSeguranca.push('Reclame Aqui');
-    if (document.getElementById('selo-compra-segura')?.checked) selosSeguranca.push('Compra Segura');
-    if (document.getElementById('selo-satisfacao')?.checked) selosSeguranca.push('Satisfação Garantida');
-
-    const info_seguranca = {
-      pagamento:   document.getElementById('seguranca-pagamento')?.value.trim() || null,
-      devolucao:   document.getElementById('seguranca-devolucao')?.value.trim() || null,
-      privacidade: document.getElementById('seguranca-privacidade')?.value.trim() || null,
-      selos:       selosSeguranca,
-    };
-
-    const btn = document.getElementById('btn-salvar-produto');
-    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
-
-    const dados = {
-      nome,
-      categoria,
-      preco:       parseFloat(preco),
-      estoque:     parseInt(estoque),
-      descricao:   descricao || null,
-      imagem_url:  imagens[0], // Mantém compatibilidade com campo existente
-      imagens,
-      cores,
-      especificacoes,
-      info_frete,
-      info_seguranca,
-    };
-
-    try {
-      if (id) {
-        await API.atualizarProduto(id, dados);
-        Toast.sucesso('Produto atualizado!');
-        this.cancelarEdicao();
-      } else {
-        await API.criarProduto(dados);
-        Toast.sucesso('Produto criado!');
-        document.getElementById('form-produto')?.reset();
-        this.coresTemporarias = [];
-        this.renderizarCoresAdmin();
-        [1,2,3].forEach(n => {
-          const p = document.getElementById(`preview-imagem-${n}`);
-          if (p) p.innerHTML = '<span>Sem imagem</span>';
-        });
-      }
-      await this.carregarProdutos();
-      await this.carregarStats();
-    } catch (err) {
-      Toast.erro(err.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar Produto'; }
-    }
-  },
-
-  // ===== EDITAR PRODUTO =====
-  editarProduto(id) {
-    const p = this.produtos.find(x => x.id === id);
-    if (!p) return;
-
-    const set = (elId, val) => {
-      const el = document.getElementById(elId);
-      if (el) el.value = val ?? '';
-    };
-
-    // Básicos
-    set('produto-id',        p.id);
-    set('produto-nome',      p.nome);
-    set('produto-categoria', p.categoria);
-    set('produto-preco',     p.preco);
-    set('produto-estoque',   p.estoque);
-    set('produto-descricao', p.descricao || '');
-
-    // Imagens
-    const imagens = p.imagens || (p.imagem_url ? [p.imagem_url] : []);
-    [0,1,2].forEach(i => {
-      set(`imagem-url-${i+1}`, imagens[i] || '');
-      this.previewImagem(i+1);
-    });
-
-    // Cores
-    this.coresTemporarias = Array.isArray(p.cores) ? [...p.cores] : [];
-    this.renderizarCoresAdmin();
-    this.atualizarCoresHidden();
-
-    // Especificações
-    const specs = p.especificacoes || {};
-    set('spec-material',  specs.material  || '');
-    set('spec-peso',      specs.peso      || '');
-    set('spec-dimensoes', specs.dimensoes || '');
-    set('spec-marca',     specs.marca     || '');
-    set('spec-modelo',    specs.modelo    || '');
-    set('spec-garantia',  specs.garantia  || '');
-
-    // Frete
-    const frete = p.info_frete || {};
-    set('frete-prazo',        frete.prazo        || '');
-    set('frete-custo',        frete.custo        || '');
-    set('frete-regioes',      frete.regioes      || '');
-    set('frete-rastreamento', frete.rastreamento || '');
-    const selosEntrega = frete.selos || [];
-    const checkFrete = (id, nome) => {
-      const el = document.getElementById(id);
-      if (el) el.checked = selosEntrega.includes(nome);
-    };
-    checkFrete('selo-frete-gratis',   'Frete Grátis');
-    checkFrete('selo-entrega-rapida', 'Entrega Rápida');
-    checkFrete('selo-entrega-expressa','Entrega Expressa');
-
-    // Segurança
-    const seg = p.info_seguranca || {};
-    set('seguranca-pagamento',   seg.pagamento   || '');
-    set('seguranca-devolucao',   seg.devolucao   || '');
-    set('seguranca-privacidade', seg.privacidade || '');
-    const selosSegs = seg.selos || [];
-    const checkSeg = (id, nome) => {
-      const el = document.getElementById(id);
-      if (el) el.checked = selosSegs.includes(nome);
-    };
-    checkSeg('selo-ssl',           'SSL Seguro');
-    checkSeg('selo-reclame-aqui',  'Reclame Aqui');
-    checkSeg('selo-compra-segura', 'Compra Segura');
-    checkSeg('selo-satisfacao',    'Satisfação Garantida');
-
-    const titulo    = document.getElementById('titulo-form');
-    const btnCancel = document.getElementById('btn-cancelar-edicao');
-    if (titulo)    titulo.textContent = '✏️ Editando Produto';
-    if (btnCancel) btnCancel.style.display = 'inline-flex';
-
-    document.getElementById('form-produto')?.scrollIntoView({ behavior: 'smooth' });
-  },
-
-  cancelarEdicao() {
-    document.getElementById('form-produto')?.reset();
-    document.getElementById('produto-id').value = '';
-    this.coresTemporarias = [];
-    this.renderizarCoresAdmin();
-    [1,2,3].forEach(n => {
-      const p = document.getElementById(`preview-imagem-${n}`);
-      if (p) p.innerHTML = '<span>Sem imagem</span>';
-    });
-
-    const titulo    = document.getElementById('titulo-form');
-    const btnCancel = document.getElementById('btn-cancelar-edicao');
-    if (titulo)    titulo.textContent = '➕ Novo Produto';
-    if (btnCancel) btnCancel.style.display = 'none';
   },
 
   ativarSecao(secao) {
